@@ -1,6 +1,6 @@
 /*
  *  Card with States by OKViz
- *  v1.3.0
+ *  v1.3.1
  *
  *  Copyright (c) SQLBI. OKViz is a trademark of SQLBI Corp.
  *  All rights reserved.
@@ -589,23 +589,26 @@ module powerbi.extensibility.visual {
 
             let incrementalPos = {
                 x: ((containerSize.width - padding.left - padding.right) / 2),
-                y: padding.top + (this.model.settings.dataLabel.fontFamily == "numbers" ? 10 : 0)
+                y: padding.top + (this.model.settings.dataLabel.fontFamily == "numbers" ? 15 : 10)
             };
 
             let dataLabel = svgContainer.append('text')
                 .attr('x', incrementalPos.x)
                 .attr('y', incrementalPos.y)
-                .attr('dominant-baseline', 'hanging')
+                //.attr('dominant-baseline', 'hanging')
                 .style({
                     'font-size': dataLabelFontSize,
                     'fill': dataLabelColor,
                     'font-family': dataLabelFontFamily,
-                    'text-anchor': 'middle'
+                    'text-anchor': 'middle',
+                    'border': '1px solid #000'
                 }) 
                 .text(dataLabelValue); 
                 
             let dataLabelNode = <any>dataLabel.node();
             let dataLabelBBox = dataLabelNode.getBBox();
+
+            dataLabel.attr('y', incrementalPos.y + (dataLabelBBox.height / 2));
 
             //Variance
             if (this.model.settings.dataLabel.variance && this.model.hasTarget) {
@@ -630,10 +633,11 @@ module powerbi.extensibility.visual {
 
                 dataLabel.attr('transform', 'translate(' + (-(varianceWidth/2) - 4) + ',0)');
 
+                
                 svgContainer.append('text')
                     .attr('x', incrementalPos.x + (dataLabelBBox.width / 2) + 8)
-                    .attr('y', incrementalPos.y + 2)
-                    .attr('dominant-baseline', 'hanging')
+                    .attr('y', incrementalPos.y + (dataLabelBBox.height / 2))
+                    //.attr('dominant-baseline', 'hanging')
                     .style({
                         'font-size': varianceFontSize,
                         'fill': varianceColor,
@@ -645,7 +649,7 @@ module powerbi.extensibility.visual {
             }
 
             
-            incrementalPos.y += dataLabelBBox.height - 5;
+            incrementalPos.y += dataLabelBBox.height - (PixelConverter.fromPointToPixel(this.model.settings.dataLabel.fontSize) / (this.model.settings.dataLabel.fontFamily == 'numbers' ? 4 : 3));
 
             //Category Label
             if (this.model.settings.categoryLabel.show) {
@@ -673,22 +677,27 @@ module powerbi.extensibility.visual {
 
                 let categoryLabel = svgContainer.append('text')
                     .attr('x', incrementalPos.x)
-                    .attr('y', + incrementalPos.y) 
-                    //.attr('dy', 1) //it seems a need from Safari
-                    .attr('dominant-baseline', 'hanging')
+                    .attr('y', incrementalPos.y) 
+                    //.attr('dominant-baseline', 'hanging')
                     .style({
                         'font-size': categoryLabelFontSize,
                         'fill': (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  this.model.settings.categoryLabel.fill.solid.color),
                         'text-anchor': 'middle'
                     })
                     .text(categoryLabelValue);
-                
+
+
+                let categoryLabelNode = <any>categoryLabel.node();
+                let categoryLabelBBox = categoryLabelNode.getBBox();
+
+                categoryLabel.attr('y', incrementalPos.y + (categoryLabelBBox.height / 2)) 
+
                 if (this.model.settings.categoryLabel.wordWrap) {
 
                     TextUtility.wrapAxis(categoryLabel, containerSize.width - padding.left - padding.right);
+                    
                 }
 
-                let categoryLabelNode = <any>categoryLabel.node();
                 incrementalPos.y += categoryLabelNode.getBBox().height;
             }
 
@@ -697,7 +706,7 @@ module powerbi.extensibility.visual {
             if (stateIndex > -1 && this.model.settings.states.showMessages && dataPoint.states[stateIndex].text && dataPoint.states[stateIndex].text !== '') {
                 incrementalPos.y += 5;
 
-                let iconSize = (!dataPoint.states[stateIndex].icon || dataPoint.states[stateIndex].icon == '' ? 0 : (this.model.settings.states.fontSize - 4));
+                let iconSize = (!dataPoint.states[stateIndex].icon || dataPoint.states[stateIndex].icon == '' ? 0 : ((PixelConverter.fromPointToPixel(this.model.settings.states.fontSize)/2)));
 
                 let messageLabelFontSize = PixelConverter.fromPoint(this.model.settings.states.fontSize);
                 let messageLabelValue = TextUtility.getTailoredTextOrDefault({
@@ -709,7 +718,7 @@ module powerbi.extensibility.visual {
                 let messageLabel = svgContainer.append('text')
                     .attr('x', incrementalPos.x + iconSize)
                     .attr('y', incrementalPos.y)
-                    .attr('dominant-baseline', 'hanging')
+                    //.attr('dominant-baseline', 'hanging')
                     .style({
                         'font-size': messageLabelFontSize,
                         'fill': (this.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  '#a6a6a6'),
@@ -720,12 +729,14 @@ module powerbi.extensibility.visual {
                 
                 let messageLabelNode = <any>messageLabel.node();
                 let messageBBox = messageLabelNode.getBBox();
+                messageLabel.attr('y', incrementalPos.y + (messageBBox.height / 2))
 
                 if (dataPoint.states[stateIndex].icon == 'circle') {
+                    //iconSize += 2;
                     svgContainer
                         .append('circle')
                         .attr('cx', incrementalPos.x - (messageBBox.width / 2) - (iconSize / 2))
-                        .attr('cy', incrementalPos.y + (messageBBox.height / 2) - (iconSize / 4))
+                        .attr('cy', incrementalPos.y + (messageBBox.height / 2) - (iconSize / 2))
                         .attr('r', (iconSize / 2))
                         .attr('fill', (this.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  dataPoint.states[stateIndex].color));
 
@@ -733,7 +744,7 @@ module powerbi.extensibility.visual {
 
                     svgContainer
                         .append('path')
-                        .attr("transform", function(d) { return "translate(" + (incrementalPos.x - (messageBBox.width / 2) - (iconSize / 2)) + "," + (incrementalPos.y + (messageBBox.height / 2) - (iconSize / 4)) + ")"; })
+                        .attr("transform", function(d) { return "translate(" + (incrementalPos.x - (messageBBox.width / 2) - (iconSize / 2)) + "," + (incrementalPos.y + (messageBBox.height / 2) - (iconSize/2)) + ")"; })
                         .attr("d", d3.svg.symbol().type("triangle-" + dataPoint.states[stateIndex].icon))
                         .attr('fill', (this.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  dataPoint.states[stateIndex].color));
 
@@ -765,6 +776,8 @@ module powerbi.extensibility.visual {
                 let trendlineHeight = containerSize.height - incrementalPos.y - 10 - padding.bottom - ray;
                 if (trendlineHeight > 1) {
                     
+                    let trendlineContainer = svgContainer.append('g')
+                                                .style('pointer-events', 'all');
 
                     let x = d3.scale.linear()
                         .domain([this.model.dataPoints.length - 1, 0])
@@ -783,7 +796,7 @@ module powerbi.extensibility.visual {
                         })
                         .interpolate(this.model.settings.trendLine.interpolation);
 
-                    svgContainer.append("path").data([this.model.dataPoints])
+                    trendlineContainer.append("path").data([this.model.dataPoints])
                         .classed('sparkline', true)
                         .attr("d", <any>line)
                         .attr('stroke-linecap', 'round')
@@ -794,14 +807,8 @@ module powerbi.extensibility.visual {
                      if (this.model.settings.trendLine.curShow) {
                          let color = (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  this.model.settings.trendLine.fill.solid.color);
 
-                        svgContainer.append('circle')
+                        trendlineContainer.append('circle')
                             .classed('point', true)
-                            .data([[<VisualTooltipDataItem>{
-                                    header: dataPoint.category,
-                                    displayName: dataPoint.displayName,
-                                    value: formatter.format(dataPoint.value),
-                                    color: (color.substr(1, 3) == '333' ? '#000' : color)
-                                }]])
                             .attr('cx', x(0))
                             .attr('cy', y(dataPoint.value))
                             .attr('r', ray)
@@ -815,14 +822,8 @@ module powerbi.extensibility.visual {
                     } else {
                         if (this.model.settings.trendLine.hiShow) {
                             let color = this.model.settings.trendLine.hiFill.solid.color;
-                            svgContainer.append('circle')
+                            trendlineContainer.append('circle')
                                 .classed('point', true)
-                                .data([[<VisualTooltipDataItem>{
-                                    header: topValue.category,
-                                    displayName: dataPoint.displayName,
-                                    value: formatter.format(topValue.value),
-                                    color: (color.substr(1, 3) == '333' ? '#000' : color)
-                                }]])
                                 .attr('cx', x(topValue.index))
                                 .attr('cy', y(topValue.value))
                                 .attr('r', ray)
@@ -832,29 +833,84 @@ module powerbi.extensibility.visual {
 
                         if (this.model.settings.trendLine.loShow) {
                             let color = this.model.settings.trendLine.loFill.solid.color;
-                            svgContainer.append('circle')
+                            trendlineContainer.append('circle')
                                 .classed('point', true)
-                                .data([[<VisualTooltipDataItem>{
-                                    header: bottomValue.category,
-                                    displayName: dataPoint.displayName,
-                                    value: formatter.format(bottomValue.value),
-                                    color: (color.substr(1, 3) == '333' ? '#000' : color)
-                                }]])
                                 .attr('cx', x(bottomValue.index))
                                 .attr('cy', y(bottomValue.value))
                                 .attr('r', ray)
                                 .attr('fill', color);  
                         }
                     }
+
+                    //Tooltips
+                    let self = this;
+                    let hidePointTimeout;
+                    trendlineContainer.on('mousemove', function(){
+
+                        clearTimeout(hidePointTimeout);
+
+                        let coord = [0, 0];
+                        coord = d3.mouse(this);
+
+                        let foundIndex = -1;
+                        for (let ii = 0; ii < self.model.dataPoints.length; ii++) {
+                            if (coord[0] == x(ii)) {
+                                foundIndex = ii;
+                                break;
+                            } else if (coord[0] < x(ii) - ((x(ii) - x(ii-1))/2)) {
+                                foundIndex = ii;
+                            } else {
+                                break;
+                            }
+                        }
+
+                        let circle = trendlineContainer.select('.point.hide-on-out');
+                        if (foundIndex == -1) {
+                            circle.remove();
+                        } else {
+                            if (circle.empty())
+                                circle = trendlineContainer.append('circle').classed('point hide-on-out', true);
+                            
+                            let val = self.model.dataPoints[foundIndex].value;
+                            let color = (stateIndex > -1 && self.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  self.model.settings.trendLine.fill.solid.color);
+                            if (self.model.settings.trendLine.hiShow && topValue.value == val) {
+                                color = self.model.settings.trendLine.hiFill.solid.color;
+                            } else if  (self.model.settings.trendLine.loShow && bottomValue.value == val) {
+                                color = self.model.settings.trendLine.loFill.solid.color;
+                            }
+
+                            circle
+                                .attr('cx', x(foundIndex))
+                                .attr('cy', y(val))
+                                .attr('r', ray)
+                                .attr('fill', color);  
+
+                                  
+                            self.tooltipServiceWrapper.addTooltip(circle, 
+                                function(tooltipEvent: TooltipEventArgs<number>){
+                                    return [<VisualTooltipDataItem>{
+                                        header: self.model.dataPoints[foundIndex].category,
+                                        displayName: dataPoint.displayName,
+                                        value: formatter.format(val),
+                                        color: (color.substr(1, 3) == '333' ? '#000' : color)
+                                    }]; 
+                                }, 
+                                (tooltipEvent: TooltipEventArgs<number>) => null,
+                                false, true  
+                            );
+                        }
+ 
+                    });
+                    trendlineContainer.on('mouseenter', function(){ 
+                        clearTimeout(hidePointTimeout);
+                    });
+                    trendlineContainer.on('mouseleave', function(){ 
+                        hidePointTimeout = setTimeout(function(){
+                            svgContainer.selectAll('.hide-on-out').remove();
+                        }, 500); 
+                    });
                 }
 
-                //Tooltips
-                this.tooltipServiceWrapper.addTooltip(svgContainer.selectAll('.point'), 
-                    function(tooltipEvent: TooltipEventArgs<number>){
-                        return <any>tooltipEvent.data;
-                    }, 
-                    (tooltipEvent: TooltipEventArgs<number>) => null
-                );
 
             } else {
 
@@ -865,7 +921,7 @@ module powerbi.extensibility.visual {
 
             }
             
-            OKVizUtility.t(['Card with States', '1.3.0'], this.element, options, this.host, {
+            OKVizUtility.t(['Card with States', '1.3.1'], this.element, options, this.host, {
                 'cd1': this.model.settings.colorBlind.vision, 
                 'cd2': (this.model.settings.states.show ?  this.model.dataPoints[0].states.length : 0),
                 'cd3': this.model.settings.states.comparison, 

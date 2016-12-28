@@ -4409,7 +4409,7 @@ var powerbi;
                         this.handleTouchDelay = handleTouchDelay;
                         this.rootElement = rootElement;
                     }
-                    TooltipServiceWrapper.prototype.addTooltip = function (selection, getTooltipInfoDelegate, getDataPointIdentity, reloadTooltipDataOnMouseMove) {
+                    TooltipServiceWrapper.prototype.addTooltip = function (selection, getTooltipInfoDelegate, getDataPointIdentity, reloadTooltipDataOnMouseMove, forceShow) {
                         var _this = this;
                         if (!selection || !this.visualHostTooltipService.enabled()) {
                             return;
@@ -4434,6 +4434,8 @@ var powerbi;
                                 identities: selectionId ? [selectionId] : [],
                             });
                         });
+                        if (forceShow)
+                            selection.on("mouseover.tooltip").call(selection.node(), selection.datum());
                         selection.on("mouseout.tooltip", function () {
                             _this.visualHostTooltipService.hide({
                                 isTouchEvent: false,
@@ -5042,7 +5044,7 @@ var powerbi;
 })(powerbi || (powerbi = {}));
 /*
  *  Card with States by OKViz
- *  v1.3.0
+ *  v1.3.1
  *
  *  Copyright (c) SQLBI. OKViz is a trademark of SQLBI Corp.
  *  All rights reserved.
@@ -5464,21 +5466,22 @@ var powerbi;
                         }
                         var incrementalPos = {
                             x: ((containerSize.width - padding.left - padding.right) / 2),
-                            y: padding.top + (this.model.settings.dataLabel.fontFamily == "numbers" ? 10 : 0)
+                            y: padding.top + (this.model.settings.dataLabel.fontFamily == "numbers" ? 15 : 10)
                         };
                         var dataLabel = svgContainer.append('text')
                             .attr('x', incrementalPos.x)
                             .attr('y', incrementalPos.y)
-                            .attr('dominant-baseline', 'hanging')
                             .style({
                             'font-size': dataLabelFontSize,
                             'fill': dataLabelColor,
                             'font-family': dataLabelFontFamily,
-                            'text-anchor': 'middle'
+                            'text-anchor': 'middle',
+                            'border': '1px solid #000'
                         })
                             .text(dataLabelValue);
                         var dataLabelNode = dataLabel.node();
                         var dataLabelBBox = dataLabelNode.getBBox();
+                        dataLabel.attr('y', incrementalPos.y + (dataLabelBBox.height / 2));
                         //Variance
                         if (this.model.settings.dataLabel.variance && this.model.hasTarget) {
                             var variance = ((value - target) / value);
@@ -5501,8 +5504,7 @@ var powerbi;
                             dataLabel.attr('transform', 'translate(' + (-(varianceWidth / 2) - 4) + ',0)');
                             svgContainer.append('text')
                                 .attr('x', incrementalPos.x + (dataLabelBBox.width / 2) + 8)
-                                .attr('y', incrementalPos.y + 2)
-                                .attr('dominant-baseline', 'hanging')
+                                .attr('y', incrementalPos.y + (dataLabelBBox.height / 2))
                                 .style({
                                 'font-size': varianceFontSize,
                                 'fill': varianceColor,
@@ -5511,7 +5513,7 @@ var powerbi;
                             })
                                 .text(varianceValue);
                         }
-                        incrementalPos.y += dataLabelBBox.height - 5;
+                        incrementalPos.y += dataLabelBBox.height - (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPointToPixel(this.model.settings.dataLabel.fontSize) / (this.model.settings.dataLabel.fontFamily == 'numbers' ? 4 : 3));
                         //Category Label
                         if (this.model.settings.categoryLabel.show) {
                             var categoryLabelFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPoint(this.model.settings.categoryLabel.fontSize);
@@ -5536,24 +5538,25 @@ var powerbi;
                             }
                             var categoryLabel = svgContainer.append('text')
                                 .attr('x', incrementalPos.x)
-                                .attr('y', +incrementalPos.y)
-                                .attr('dominant-baseline', 'hanging')
+                                .attr('y', incrementalPos.y)
                                 .style({
                                 'font-size': categoryLabelFontSize,
                                 'fill': (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : this.model.settings.categoryLabel.fill.solid.color),
                                 'text-anchor': 'middle'
                             })
                                 .text(categoryLabelValue);
+                            var categoryLabelNode = categoryLabel.node();
+                            var categoryLabelBBox = categoryLabelNode.getBBox();
+                            categoryLabel.attr('y', incrementalPos.y + (categoryLabelBBox.height / 2));
                             if (this.model.settings.categoryLabel.wordWrap) {
                                 PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.TextUtility.wrapAxis(categoryLabel, containerSize.width - padding.left - padding.right);
                             }
-                            var categoryLabelNode = categoryLabel.node();
                             incrementalPos.y += categoryLabelNode.getBBox().height;
                         }
                         //Message label
                         if (stateIndex > -1 && this.model.settings.states.showMessages && dataPoint.states[stateIndex].text && dataPoint.states[stateIndex].text !== '') {
                             incrementalPos.y += 5;
-                            var iconSize_1 = (!dataPoint.states[stateIndex].icon || dataPoint.states[stateIndex].icon == '' ? 0 : (this.model.settings.states.fontSize - 4));
+                            var iconSize_1 = (!dataPoint.states[stateIndex].icon || dataPoint.states[stateIndex].icon == '' ? 0 : ((PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPointToPixel(this.model.settings.states.fontSize) / 2)));
                             var messageLabelFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPoint(this.model.settings.states.fontSize);
                             var messageLabelValue = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.TextUtility.getTailoredTextOrDefault({
                                 text: dataPoint.states[stateIndex].text,
@@ -5563,7 +5566,6 @@ var powerbi;
                             var messageLabel = svgContainer.append('text')
                                 .attr('x', incrementalPos.x + iconSize_1)
                                 .attr('y', incrementalPos.y)
-                                .attr('dominant-baseline', 'hanging')
                                 .style({
                                 'font-size': messageLabelFontSize,
                                 'fill': (this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : '#a6a6a6'),
@@ -5572,18 +5574,20 @@ var powerbi;
                                 .text(messageLabelValue);
                             var messageLabelNode = messageLabel.node();
                             var messageBBox_1 = messageLabelNode.getBBox();
+                            messageLabel.attr('y', incrementalPos.y + (messageBBox_1.height / 2));
                             if (dataPoint.states[stateIndex].icon == 'circle') {
+                                //iconSize += 2;
                                 svgContainer
                                     .append('circle')
                                     .attr('cx', incrementalPos.x - (messageBBox_1.width / 2) - (iconSize_1 / 2))
-                                    .attr('cy', incrementalPos.y + (messageBBox_1.height / 2) - (iconSize_1 / 4))
+                                    .attr('cy', incrementalPos.y + (messageBBox_1.height / 2) - (iconSize_1 / 2))
                                     .attr('r', (iconSize_1 / 2))
                                     .attr('fill', (this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : dataPoint.states[stateIndex].color));
                             }
                             else if (dataPoint.states[stateIndex].icon == 'up' || dataPoint.states[stateIndex].icon == 'down') {
                                 svgContainer
                                     .append('path')
-                                    .attr("transform", function (d) { return "translate(" + (incrementalPos.x - (messageBBox_1.width / 2) - (iconSize_1 / 2)) + "," + (incrementalPos.y + (messageBBox_1.height / 2) - (iconSize_1 / 4)) + ")"; })
+                                    .attr("transform", function (d) { return "translate(" + (incrementalPos.x - (messageBBox_1.width / 2) - (iconSize_1 / 2)) + "," + (incrementalPos.y + (messageBBox_1.height / 2) - (iconSize_1 / 2)) + ")"; })
                                     .attr("d", d3.svg.symbol().type("triangle-" + dataPoint.states[stateIndex].icon))
                                     .attr('fill', (this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : dataPoint.states[stateIndex].color));
                             }
@@ -5597,24 +5601,26 @@ var powerbi;
                         if (this.model.dataPoints.length > 1) {
                             //We use this method and not d3.extent because we need to know hi/low index points
                             //d3.extent(this.model.dataPoints, function(d) { return d.value; });
-                            var topValue = void 0, bottomValue = void 0;
+                            var topValue_1, bottomValue_1;
                             for (var ii = 0; ii < this.model.dataPoints.length; ii++) {
-                                if (!topValue || this.model.dataPoints[ii].value > topValue.value) {
-                                    topValue = { index: ii, value: this.model.dataPoints[ii].value, category: this.model.dataPoints[ii].category };
+                                if (!topValue_1 || this.model.dataPoints[ii].value > topValue_1.value) {
+                                    topValue_1 = { index: ii, value: this.model.dataPoints[ii].value, category: this.model.dataPoints[ii].category };
                                 }
-                                if (!bottomValue || this.model.dataPoints[ii].value < bottomValue.value) {
-                                    bottomValue = { index: ii, value: this.model.dataPoints[ii].value, category: this.model.dataPoints[ii].category };
+                                if (!bottomValue_1 || this.model.dataPoints[ii].value < bottomValue_1.value) {
+                                    bottomValue_1 = { index: ii, value: this.model.dataPoints[ii].value, category: this.model.dataPoints[ii].category };
                                 }
                             }
-                            var ray = this.model.settings.trendLine.weight * 2;
-                            var trendlineHeight = containerSize.height - incrementalPos.y - 10 - padding.bottom - ray;
+                            var ray_1 = this.model.settings.trendLine.weight * 2;
+                            var trendlineHeight = containerSize.height - incrementalPos.y - 10 - padding.bottom - ray_1;
                             if (trendlineHeight > 1) {
+                                var trendlineContainer_1 = svgContainer.append('g')
+                                    .style('pointer-events', 'all');
                                 var x_1 = d3.scale.linear()
                                     .domain([this.model.dataPoints.length - 1, 0])
-                                    .range([ray, containerSize.width - padding.left - padding.right - ray]);
+                                    .range([ray_1, containerSize.width - padding.left - padding.right - ray_1]);
                                 var y_1 = d3.scale.linear()
-                                    .domain([bottomValue.value, topValue.value])
-                                    .range([containerSize.height - padding.bottom - ray, incrementalPos.y + 10]);
+                                    .domain([bottomValue_1.value, topValue_1.value])
+                                    .range([containerSize.height - padding.bottom - ray_1, incrementalPos.y + 10]);
                                 var line = d3.svg.line()
                                     .x(function (d, j) {
                                     return x_1(j);
@@ -5623,7 +5629,7 @@ var powerbi;
                                     return y_1(d.value);
                                 })
                                     .interpolate(this.model.settings.trendLine.interpolation);
-                                svgContainer.append("path").data([this.model.dataPoints])
+                                trendlineContainer_1.append("path").data([this.model.dataPoints])
                                     .classed('sparkline', true)
                                     .attr("d", line)
                                     .attr('stroke-linecap', 'round')
@@ -5632,17 +5638,11 @@ var powerbi;
                                     .attr('fill', 'none');
                                 if (this.model.settings.trendLine.curShow) {
                                     var color = (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : this.model.settings.trendLine.fill.solid.color);
-                                    svgContainer.append('circle')
+                                    trendlineContainer_1.append('circle')
                                         .classed('point', true)
-                                        .data([[{
-                                                header: dataPoint.category,
-                                                displayName: dataPoint.displayName,
-                                                value: formatter.format(dataPoint.value),
-                                                color: (color.substr(1, 3) == '333' ? '#000' : color)
-                                            }]])
                                         .attr('cx', x_1(0))
                                         .attr('cy', y_1(dataPoint.value))
-                                        .attr('r', ray)
+                                        .attr('r', ray_1)
                                         .attr('fill', color);
                                 }
                                 if (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor') {
@@ -5650,47 +5650,89 @@ var powerbi;
                                 else {
                                     if (this.model.settings.trendLine.hiShow) {
                                         var color = this.model.settings.trendLine.hiFill.solid.color;
-                                        svgContainer.append('circle')
+                                        trendlineContainer_1.append('circle')
                                             .classed('point', true)
-                                            .data([[{
-                                                    header: topValue.category,
-                                                    displayName: dataPoint.displayName,
-                                                    value: formatter.format(topValue.value),
-                                                    color: (color.substr(1, 3) == '333' ? '#000' : color)
-                                                }]])
-                                            .attr('cx', x_1(topValue.index))
-                                            .attr('cy', y_1(topValue.value))
-                                            .attr('r', ray)
+                                            .attr('cx', x_1(topValue_1.index))
+                                            .attr('cy', y_1(topValue_1.value))
+                                            .attr('r', ray_1)
                                             .attr('fill', color);
                                     }
                                     if (this.model.settings.trendLine.loShow) {
                                         var color = this.model.settings.trendLine.loFill.solid.color;
-                                        svgContainer.append('circle')
+                                        trendlineContainer_1.append('circle')
                                             .classed('point', true)
-                                            .data([[{
-                                                    header: bottomValue.category,
-                                                    displayName: dataPoint.displayName,
-                                                    value: formatter.format(bottomValue.value),
-                                                    color: (color.substr(1, 3) == '333' ? '#000' : color)
-                                                }]])
-                                            .attr('cx', x_1(bottomValue.index))
-                                            .attr('cy', y_1(bottomValue.value))
-                                            .attr('r', ray)
+                                            .attr('cx', x_1(bottomValue_1.index))
+                                            .attr('cy', y_1(bottomValue_1.value))
+                                            .attr('r', ray_1)
                                             .attr('fill', color);
                                     }
                                 }
+                                //Tooltips
+                                var self_1 = this;
+                                var hidePointTimeout_1;
+                                trendlineContainer_1.on('mousemove', function () {
+                                    clearTimeout(hidePointTimeout_1);
+                                    var coord = [0, 0];
+                                    coord = d3.mouse(this);
+                                    var foundIndex = -1;
+                                    for (var ii = 0; ii < self_1.model.dataPoints.length; ii++) {
+                                        if (coord[0] == x_1(ii)) {
+                                            foundIndex = ii;
+                                            break;
+                                        }
+                                        else if (coord[0] < x_1(ii) - ((x_1(ii) - x_1(ii - 1)) / 2)) {
+                                            foundIndex = ii;
+                                        }
+                                        else {
+                                            break;
+                                        }
+                                    }
+                                    var circle = trendlineContainer_1.select('.point.hide-on-out');
+                                    if (foundIndex == -1) {
+                                        circle.remove();
+                                    }
+                                    else {
+                                        if (circle.empty())
+                                            circle = trendlineContainer_1.append('circle').classed('point hide-on-out', true);
+                                        var val_1 = self_1.model.dataPoints[foundIndex].value;
+                                        var color_1 = (stateIndex > -1 && self_1.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : self_1.model.settings.trendLine.fill.solid.color);
+                                        if (self_1.model.settings.trendLine.hiShow && topValue_1.value == val_1) {
+                                            color_1 = self_1.model.settings.trendLine.hiFill.solid.color;
+                                        }
+                                        else if (self_1.model.settings.trendLine.loShow && bottomValue_1.value == val_1) {
+                                            color_1 = self_1.model.settings.trendLine.loFill.solid.color;
+                                        }
+                                        circle
+                                            .attr('cx', x_1(foundIndex))
+                                            .attr('cy', y_1(val_1))
+                                            .attr('r', ray_1)
+                                            .attr('fill', color_1);
+                                        self_1.tooltipServiceWrapper.addTooltip(circle, function (tooltipEvent) {
+                                            return [{
+                                                    header: self_1.model.dataPoints[foundIndex].category,
+                                                    displayName: dataPoint.displayName,
+                                                    value: formatter.format(val_1),
+                                                    color: (color_1.substr(1, 3) == '333' ? '#000' : color_1)
+                                                }];
+                                        }, function (tooltipEvent) { return null; }, false, true);
+                                    }
+                                });
+                                trendlineContainer_1.on('mouseenter', function () {
+                                    clearTimeout(hidePointTimeout_1);
+                                });
+                                trendlineContainer_1.on('mouseleave', function () {
+                                    hidePointTimeout_1 = setTimeout(function () {
+                                        svgContainer.selectAll('.hide-on-out').remove();
+                                    }, 500);
+                                });
                             }
-                            //Tooltips
-                            this.tooltipServiceWrapper.addTooltip(svgContainer.selectAll('.point'), function (tooltipEvent) {
-                                return tooltipEvent.data;
-                            }, function (tooltipEvent) { return null; });
                         }
                         else {
                             if (this.model.settings.dataLabel.alignment == 'middle') {
                                 svgContainer.attr('transform', 'translate(0, ' + (((containerSize.height - padding.bottom - incrementalPos.y) / 2) - margin.top) + ')');
                             }
                         }
-                        PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.t(['Card with States', '1.3.0'], this.element, options, this.host, {
+                        PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.t(['Card with States', '1.3.1'], this.element, options, this.host, {
                             'cd1': this.model.settings.colorBlind.vision,
                             'cd2': (this.model.settings.states.show ? this.model.dataPoints[0].states.length : 0),
                             'cd3': this.model.settings.states.comparison,
@@ -5942,11 +5984,11 @@ var powerbi;
     (function (visuals) {
         var plugins;
         (function (plugins) {
-            plugins.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEBUG = {
-                name: 'PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEBUG',
+            plugins.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = {
+                name: 'PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337',
                 displayName: 'Card with States by OKViz',
                 class: 'Visual',
-                version: '1.3.0',
+                version: '1.3.1',
                 apiVersion: '1.3.0',
                 create: function (options) { return new powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.Visual(options); },
                 custom: true

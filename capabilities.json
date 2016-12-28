@@ -140,7 +140,7 @@
                 },
 
                 "variance": {
-                    "displayName": "Show Variance",
+                    "displayName": "Variance %",
                     "type": {
                         "bool": true
                     }
@@ -327,7 +327,7 @@
                 },
 
                 "showMessages": {
-                   "displayName": "Show messages",
+                   "displayName": "Messages",
                    "type": {
                        "bool": true
                    }
