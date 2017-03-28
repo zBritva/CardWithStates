@@ -1,6 +1,5 @@
 /*
  *  Card with States by OKViz
- *  v1.3.1
  *
  *  Copyright (c) SQLBI. OKViz is a trademark of SQLBI Corp.
  *  All rights reserved.
@@ -24,14 +23,25 @@
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-  
+
+import tooltip = powerbi.extensibility.utils.tooltip;
+import TooltipEnabledDataPoint = powerbi.extensibility.utils.tooltip.TooltipEnabledDataPoint;
+import TooltipEventArgs = powerbi.extensibility.utils.tooltip.TooltipEventArgs;
+
 module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337  {
     
+    interface VisualMeta {
+        name: string;
+        version: string;
+        dev: boolean;
+    }
+
     interface VisualViewModel {
         dataPoints: VisualDataPoint[];
-        value?: number;       
+        value?: number;      
         stateValue?: number; 
         target?: number;
+        arePercentages?: boolean;
         hasStates?: boolean;
         hasTarget?: boolean;
         settings: VisualSettings;
@@ -264,6 +274,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
     
         //Get DataPoints
         let dataPoints: VisualDataPoint[] = [];
+        let arePercentages = false;
         let hasTarget = false;
         let hasStates = false;
         let totalValue, totalStateValue, totalTarget;
@@ -301,8 +312,11 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                             displayName: displayName,
                             category: categoryValue,
                             format: dataValue.source.format,
-                            selectionId: host.createSelectionIdBuilder().withMeasure(dataValue.source.queryName).createSelectionId()
+                            selectionId: host.createSelectionIdBuilder().withCategory(category, i).createSelectionId()
                         };
+
+                        if (dataValue.source.format && dataValue.source.format.indexOf('%') > -1)
+                            arePercentages = true;
                     }
 
                     if (dataValue.source.roles['TargetValue']){ //statesMeasure -> TargetValue for legacy compatibility
@@ -445,6 +459,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
             value: totalValue,
             stateValue: totalStateValue,
             target: totalTarget,
+            arePercentages: arePercentages,
             hasTarget: hasTarget,
             hasStates: hasStates,
             settings: settings,
@@ -452,21 +467,29 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
     }
 
     export class Visual implements IVisual {
+        private meta: VisualMeta;
         private host: IVisualHost;
         private selectionManager: ISelectionManager;
         private selectionIdBuilder: ISelectionIdBuilder;
-        private tooltipServiceWrapper: ITooltipServiceWrapper;
+        private tooltipServiceWrapper: tooltip.ITooltipServiceWrapper;
         private model: VisualViewModel;
 
         private element: d3.Selection<HTMLElement>;
         private window: any;
  
         constructor(options: VisualConstructorOptions) {
-  
+            
+            this.meta = {
+                name: 'Card with States',
+                version: '1.3.2',
+                dev: false
+            };
+            console.log('%c' + this.meta.name + ' by OKViz ' + this.meta.version + (this.meta.dev ? ' (BETA)' : ''), 'font-weight:bold');
+
             this.host = options.host;
             this.selectionIdBuilder = options.host.createSelectionIdBuilder();
             this.selectionManager = options.host.createSelectionManager();
-            this.tooltipServiceWrapper = createTooltipServiceWrapper(options.host.tooltipService, options.element);
+            this.tooltipServiceWrapper = tooltip.createTooltipServiceWrapper(options.host.tooltipService, options.element);
             this.model = { dataPoints: [], hasStates: false, hasTarget: false, settings: <VisualSettings>{} };
 
             this.element = d3.select(options.element);
@@ -501,7 +524,8 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
             if (this.model.settings.states.show) {
 
                 let diff = (target ? (stateValue - target) : 0);
-                let variance = (target ? (diff / stateValue) : 0);
+                let variance = (target ? (this.model.arePercentages ? diff : (diff / target)) : 0);
+
                 for (let i = 0; i < dataPoint.states.length; i++){
 
                     let state = dataPoint.states[i];
@@ -510,7 +534,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                     if (this.model.settings.states.calculate == 'modifier') {
                         valueToCompare = diff;
                     } else if (this.model.settings.states.calculate == 'percentage') {
-                        valueToCompare = variance + 1; //We add +1 because percent states are cumulative - for example State A = 1.5, State B = 1.75 and not State A = 0.5, State B = 0.25
+                        valueToCompare = variance;
                     }
 
                     let found = false;
@@ -613,7 +637,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
             //Variance
             if (this.model.settings.dataLabel.variance && this.model.hasTarget) {
 
-                let variance = ((value - target) / value);
+                let variance = ((value - target) / (this.model.arePercentages ? 1 : target));
                 let varianceValue = (variance > 0 ? '+':'') + ((variance * 100).toFixed(this.model.settings.dataLabel.variancePrecision == null ? 2: this.model.settings.dataLabel.variancePrecision)) + '%';
                 let varianceFontSize = PixelConverter.fromPoint(this.model.settings.dataLabel.fontSize - ((this.model.settings.dataLabel.fontFamily == 'numbers' ? 6 : 2)));
                 let varianceWidth = TextUtility.measureTextWidth({
@@ -663,7 +687,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                     rawCategoryLabelValue = this.model.settings.categoryLabel.text;
                 } else {
                     if (this.model.settings.dataLabel.variance && this.model.hasTarget)
-                        rawCategoryLabelValue += ' (over ' +  dataPoint.targetDisplayName + ')';
+                        rawCategoryLabelValue += ' (vs. ' +  dataPoint.targetDisplayName + ')';
                 }
 
                 let categoryLabelValue = rawCategoryLabelValue;
@@ -758,6 +782,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
             }
 
             //Trend line
+             let self = this;
             if (this.model.dataPoints.length > 1) {
 
                 //We use this method and not d3.extent because we need to know hi/low index points
@@ -808,11 +833,12 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                          let color = (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  this.model.settings.trendLine.fill.solid.color);
 
                         trendlineContainer.append('circle')
-                            .classed('point', true)
+                            .classed('point fixed', true)
                             .attr('cx', x(0))
                             .attr('cy', y(dataPoint.value))
                             .attr('r', ray)
-                            .attr('fill', color);  
+                            .attr('fill', color);
+                            
                         }
 
                     if (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor') {
@@ -823,7 +849,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                         if (this.model.settings.trendLine.hiShow) {
                             let color = this.model.settings.trendLine.hiFill.solid.color;
                             trendlineContainer.append('circle')
-                                .classed('point', true)
+                                .classed('point fixed', true)
                                 .attr('cx', x(topValue.index))
                                 .attr('cy', y(topValue.value))
                                 .attr('r', ray)
@@ -834,7 +860,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                         if (this.model.settings.trendLine.loShow) {
                             let color = this.model.settings.trendLine.loFill.solid.color;
                             trendlineContainer.append('circle')
-                                .classed('point', true)
+                                .classed('point fixed', true)
                                 .attr('cx', x(bottomValue.index))
                                 .attr('cy', y(bottomValue.value))
                                 .attr('r', ray)
@@ -864,17 +890,18 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                             }
                         }
 
-                        let circle = trendlineContainer.select('.point.hide-on-out');
+                        let circle = trendlineContainer.select('.point:not(.fixed):not(.keep)');
                         if (foundIndex == -1) {
                             circle.remove();
                         } else {
                             if (circle.empty())
-                                circle = trendlineContainer.append('circle').classed('point hide-on-out', true);
+                                circle = trendlineContainer.append('circle').classed('point', true);
                             
                             let val = self.model.dataPoints[foundIndex].value;
                             let color = (stateIndex > -1 && self.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  self.model.settings.trendLine.fill.solid.color);
                             if (self.model.settings.trendLine.hiShow && topValue.value == val) {
                                 color = self.model.settings.trendLine.hiFill.solid.color;
+
                             } else if  (self.model.settings.trendLine.loShow && bottomValue.value == val) {
                                 color = self.model.settings.trendLine.loFill.solid.color;
                             }
@@ -883,20 +910,34 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                                 .attr('cx', x(foundIndex))
                                 .attr('cy', y(val))
                                 .attr('r', ray)
-                                .attr('fill', color);  
+                                .attr('fill', color)  
+                                .on('click', function(d) {
+                                    selectionManager.select(self.model.dataPoints[foundIndex].selectionId).then((ids: ISelectionId[]) => {
+                                        
+                                        let selection = (ids.length > 0);
+                                        d3.selectAll('.point.fixed').attr({ 'fill-opacity': (selection ? 0.3 : 1) });
+                                        d3.selectAll('.sparkline').attr({ 'stroke-opacity': (selection ? 0.3 : 1) });
+                                        d3.selectAll('.point.keep').classed('keep', false);
 
+                                        if (selection) 
+                                            d3.select(this).classed('keep', true).attr({ 'fill-opacity': 1 });
+
+                                        d3.selectAll('.point:not(.fixed):not(.keep)').remove();
+                                    });
+
+                                    (<Event>d3.event).stopPropagation();
+                                });
+            
                                   
                             self.tooltipServiceWrapper.addTooltip(circle, 
-                                function(tooltipEvent: TooltipEventArgs<number>){
+                                function(eventArgs: TooltipEventArgs<TooltipEnabledDataPoint>){
                                     return [<VisualTooltipDataItem>{
                                         header: self.model.dataPoints[foundIndex].category,
                                         displayName: dataPoint.displayName,
                                         value: formatter.format(val),
                                         color: (color.substr(1, 3) == '333' ? '#000' : color)
                                     }]; 
-                                }, 
-                                (tooltipEvent: TooltipEventArgs<number>) => null,
-                                false, true  
+                                }, null, true
                             );
                         }
  
@@ -906,8 +947,8 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                     });
                     trendlineContainer.on('mouseleave', function(){ 
                         hidePointTimeout = setTimeout(function(){
-                            svgContainer.selectAll('.hide-on-out').remove();
-                        }, 500); 
+                            svgContainer.selectAll('.point:not(.fixed):not(.keep)').remove();
+                        }, 500);
                     });
                 }
 
@@ -921,7 +962,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
 
             }
             
-            OKVizUtility.t(['Card with States', '1.3.1'], this.element, options, this.host, {
+            OKVizUtility.t([this.meta.name, this.meta.version], this.element, options, this.host, {
                 'cd1': this.model.settings.colorBlind.vision, 
                 'cd2': (this.model.settings.states.show ?  this.model.dataPoints[0].states.length : 0),
                 'cd3': this.model.settings.states.comparison, 
