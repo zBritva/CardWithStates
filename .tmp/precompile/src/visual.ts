@@ -481,7 +481,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
             
             this.meta = {
                 name: 'Card with States',
-                version: '1.3.2',
+                version: '1.3.3',
                 dev: false
             };
             console.log('%c' + this.meta.name + ' by OKViz ' + this.meta.version + (this.meta.dev ? ' (BETA)' : ''), 'font-weight:bold');
@@ -500,7 +500,7 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
             this.model = visualTransform(options, this.host);
             this.element.selectAll('div, svg').remove();
             if (this.model.dataPoints.length == 0) return;
-              
+
             let selectionManager  = this.selectionManager;
             let dataPoint = this.model.dataPoints[0]; 
             
@@ -968,7 +968,8 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
                 'cd3': this.model.settings.states.comparison, 
                 'cd5': this.model.hasStates, 
                 'cd10': this.model.settings.dataLabel.variance, 
-                'cd11': (this.model.dataPoints.length > 1)
+                'cd11': (this.model.dataPoints.length > 1),
+                'cd15': this.meta.dev
             }); 
                 
             //Color Blind module

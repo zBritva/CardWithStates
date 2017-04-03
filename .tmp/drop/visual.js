@@ -10706,7 +10706,11 @@ var powerbi;
                         element.selectAll('#visionFilter').remove();
                         element.append('svg')
                             .attr('id', 'visionFilter')
-                            .style('position', 'absolute')
+                            .style({
+                            'position': 'absolute',
+                            'width': 0,
+                            'height': 0
+                        })
                             .html(visionDefs);
                         element.style({
                             'filter': 'url(#vision' + vision + ')',
@@ -11045,7 +11049,7 @@ var powerbi;
                     function Visual(options) {
                         this.meta = {
                             name: 'Card with States',
-                            version: '1.3.2',
+                            version: '1.3.3',
                             dev: false
                         };
                         console.log('%c' + this.meta.name + ' by OKViz ' + this.meta.version + (this.meta.dev ? ' (BETA)' : ''), 'font-weight:bold');
@@ -11443,7 +11447,8 @@ var powerbi;
                             'cd3': this.model.settings.states.comparison,
                             'cd5': this.model.hasStates,
                             'cd10': this.model.settings.dataLabel.variance,
-                            'cd11': (this.model.dataPoints.length > 1)
+                            'cd11': (this.model.dataPoints.length > 1),
+                            'cd15': this.meta.dev
                         });
                         //Color Blind module
                         PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.applyColorBlindVision(this.model.settings.colorBlind.vision, this.element);
@@ -11693,7 +11698,7 @@ var powerbi;
                 name: 'PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337',
                 displayName: 'Card with States by OKViz',
                 class: 'Visual',
-                version: '1.3.2',
+                version: '1.3.3',
                 apiVersion: '1.5.0',
                 create: function (options) { return new powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.Visual(options); },
                 custom: true
