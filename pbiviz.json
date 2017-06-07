@@ -2,9 +2,9 @@
   "visual": {
     "name": "cardWithStatesByOKViz",
     "displayName": "Card with States by OKViz",
-    "guid": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337",
+    "guid": "PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV",
     "visualClassName": "Visual",
-    "version": "1.3.3",
+    "version": "1.3.4",
     "description": "Based on the Power BI built-in Card and KPI, the Card with States by OKViz allows you to bind a performance measure and to define multiple states that determine the color of the visual itself. Moreover, you can set a trend axis to display a the measure trend line. It is customizable in every single aspect.",
     "supportUrl": "http://okviz.com/card-with-states/",
     "gitHubUrl": "https://github.com/okviz/cardwithstates"
@@ -15,7 +15,7 @@
     "email": "support@okviz.com"
   },
   "assets": {
-    "icon": "assets/icon.png"
+    "icon": "assets/icon-dev.png"
   },
   "externalJS": [
     "node_modules/jquery/dist/jquery.min.js",

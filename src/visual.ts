@@ -481,8 +481,8 @@ module powerbi.extensibility.visual {
             
             this.meta = {
                 name: 'Card with States',
-                version: '1.3.3',
-                dev: false
+                version: '1.3.4',
+                dev: true
             };
             console.log('%c' + this.meta.name + ' by OKViz ' + this.meta.version + (this.meta.dev ? ' (BETA)' : ''), 'font-weight:bold');
 

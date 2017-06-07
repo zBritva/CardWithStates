@@ -28,7 +28,7 @@ import tooltip = powerbi.extensibility.utils.tooltip;
 import TooltipEnabledDataPoint = powerbi.extensibility.utils.tooltip.TooltipEnabledDataPoint;
 import TooltipEventArgs = powerbi.extensibility.utils.tooltip.TooltipEventArgs;
 
-module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337  {
+module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV  {
     
     interface VisualMeta {
         name: string;
@@ -481,8 +481,8 @@ module powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 
             
             this.meta = {
                 name: 'Card with States',
-                version: '1.3.3',
-                dev: false
+                version: '1.3.4',
+                dev: true
             };
             console.log('%c' + this.meta.name + ' by OKViz ' + this.meta.version + (this.meta.dev ? ' (BETA)' : ''), 'font-weight:bold');
 

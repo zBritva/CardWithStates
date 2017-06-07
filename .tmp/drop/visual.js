@@ -5999,9 +5999,9 @@ var powerbi;
                         this.cache = {};
                         this.clearCacheTimerId = undefined;
                     };
-                    EphemeralStorageService.defaultClearCacheInterval = (1000 * 60 * 60 * 24); // 1 day
                     return EphemeralStorageService;
                 }());
+                EphemeralStorageService.defaultClearCacheInterval = (1000 * 60 * 60 * 24); // 1 day
                 formatting.EphemeralStorageService = EphemeralStorageService;
                 formatting.ephemeralStorageService = new EphemeralStorageService();
             })(formatting = utils.formatting || (utils.formatting = {}));
@@ -6057,7 +6057,7 @@ var powerbi;
                     function format() {
                         var args = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
-                            args[_i - 0] = arguments[_i];
+                            args[_i] = arguments[_i];
                         }
                         var s = args[0];
                         if (isNullOrUndefinedOrWhiteSpaceString(s))
@@ -6511,6 +6511,7 @@ var powerbi;
             var formatting;
             (function (formatting) {
                 /** Enumeration of DateTimeUnits */
+                var DateTimeUnit;
                 (function (DateTimeUnit) {
                     DateTimeUnit[DateTimeUnit["Year"] = 0] = "Year";
                     DateTimeUnit[DateTimeUnit["Month"] = 1] = "Month";
@@ -6520,8 +6521,7 @@ var powerbi;
                     DateTimeUnit[DateTimeUnit["Minute"] = 5] = "Minute";
                     DateTimeUnit[DateTimeUnit["Second"] = 6] = "Second";
                     DateTimeUnit[DateTimeUnit["Millisecond"] = 7] = "Millisecond";
-                })(formatting.DateTimeUnit || (formatting.DateTimeUnit = {}));
-                var DateTimeUnit = formatting.DateTimeUnit;
+                })(DateTimeUnit = formatting.DateTimeUnit || (formatting.DateTimeUnit = {}));
             })(formatting = utils.formatting || (utils.formatting = {}));
         })(utils = extensibility.utils || (extensibility.utils = {}));
     })(extensibility = powerbi.extensibility || (powerbi.extensibility = {}));
@@ -7384,11 +7384,11 @@ var powerbi;
                             return DateTimeUnit.Month;
                         return DateTimeUnit.Year;
                     };
-                    // Constants
-                    DateTimeSequence.MIN_COUNT = 1;
-                    DateTimeSequence.MAX_COUNT = 1000;
                     return DateTimeSequence;
                 }());
+                // Constants
+                DateTimeSequence.MIN_COUNT = 1;
+                DateTimeSequence.MAX_COUNT = 1000;
                 formatting.DateTimeSequence = DateTimeSequence;
             })(formatting = utils.formatting || (utils.formatting = {}));
         })(utils = extensibility.utils || (extensibility.utils = {}));
@@ -7933,7 +7933,9 @@ var powerbi;
                         else
                             format = output.format;
                         // need to revisit when globalization is enabled
-                        culture = Globalize.culture("en-US");
+                        if (!culture) {
+                            culture = Globalize.culture("en-US");
+                        }
                         return Globalize.format(output.value, format, culture);
                     }
                     /** Formats the date using custom format expression */
@@ -8818,6 +8820,7 @@ var powerbi;
             var formatting;
             (function (formatting) {
                 /** The system used to determine display units used during formatting */
+                var DisplayUnitSystemType;
                 (function (DisplayUnitSystemType) {
                     /** Default display unit system, which saves space by using units such as K, M, bn with PowerView rules for when to pick a unit. Suitable for chart axes. */
                     DisplayUnitSystemType[DisplayUnitSystemType["Default"] = 0] = "Default";
@@ -8830,8 +8833,7 @@ var powerbi;
                     DisplayUnitSystemType[DisplayUnitSystemType["WholeUnits"] = 2] = "WholeUnits";
                     /**A display unit system that also contains Auto and None units for data labels*/
                     DisplayUnitSystemType[DisplayUnitSystemType["DataLabels"] = 3] = "DataLabels";
-                })(formatting.DisplayUnitSystemType || (formatting.DisplayUnitSystemType = {}));
-                var DisplayUnitSystemType = formatting.DisplayUnitSystemType;
+                })(DisplayUnitSystemType = formatting.DisplayUnitSystemType || (formatting.DisplayUnitSystemType = {}));
             })(formatting = utils.formatting || (utils.formatting = {}));
         })(utils = extensibility.utils || (extensibility.utils = {}));
     })(extensibility = powerbi.extensibility || (powerbi.extensibility = {}));
@@ -9048,16 +9050,16 @@ var powerbi;
                         }
                         return format;
                     };
-                    DisplayUnitSystem.UNSUPPORTED_FORMATS = /^(p\d*)|(e\d*)$/i;
                     return DisplayUnitSystem;
                 }());
+                DisplayUnitSystem.UNSUPPORTED_FORMATS = /^(p\d*)|(e\d*)$/i;
                 formatting.DisplayUnitSystem = DisplayUnitSystem;
                 /** Provides a unit system that is defined by formatting in the model, and is suitable for visualizations shown in single number visuals in explore mode. */
                 var NoDisplayUnitSystem = (function (_super) {
                     __extends(NoDisplayUnitSystem, _super);
                     // Constructor
                     function NoDisplayUnitSystem() {
-                        _super.call(this, []);
+                        return _super.call(this, []) || this;
                     }
                     return NoDisplayUnitSystem;
                 }(DisplayUnitSystem));
@@ -9068,7 +9070,7 @@ var powerbi;
                     __extends(DefaultDisplayUnitSystem, _super);
                     // Constructor
                     function DefaultDisplayUnitSystem(unitLookup) {
-                        _super.call(this, DefaultDisplayUnitSystem.getUnits(unitLookup));
+                        return _super.call(this, DefaultDisplayUnitSystem.getUnits(unitLookup)) || this;
                     }
                     // Methods
                     DefaultDisplayUnitSystem.prototype.format = function (data, format, decimals, trailingZeros, cultureSelector) {
@@ -9102,7 +9104,7 @@ var powerbi;
                     __extends(WholeUnitsDisplayUnitSystem, _super);
                     // Constructor
                     function WholeUnitsDisplayUnitSystem(unitLookup) {
-                        _super.call(this, WholeUnitsDisplayUnitSystem.getUnits(unitLookup));
+                        return _super.call(this, WholeUnitsDisplayUnitSystem.getUnits(unitLookup)) || this;
                     }
                     WholeUnitsDisplayUnitSystem.reset = function () {
                         WholeUnitsDisplayUnitSystem.units = null;
@@ -9125,7 +9127,7 @@ var powerbi;
                 var DataLabelsDisplayUnitSystem = (function (_super) {
                     __extends(DataLabelsDisplayUnitSystem, _super);
                     function DataLabelsDisplayUnitSystem(unitLookup) {
-                        _super.call(this, DataLabelsDisplayUnitSystem.getUnits(unitLookup));
+                        return _super.call(this, DataLabelsDisplayUnitSystem.getUnits(unitLookup)) || this;
                     }
                     DataLabelsDisplayUnitSystem.prototype.isFormatSupported = function (format) {
                         return !DataLabelsDisplayUnitSystem.UNSUPPORTED_FORMATS.test(format);
@@ -9159,12 +9161,12 @@ var powerbi;
                         format = this.getScientificFormat(data, format, decimals, trailingZeros);
                         return _super.prototype.format.call(this, data, format, decimals, trailingZeros, cultureSelector);
                     };
-                    // Constants
-                    DataLabelsDisplayUnitSystem.AUTO_DISPLAYUNIT_VALUE = 0;
-                    DataLabelsDisplayUnitSystem.NONE_DISPLAYUNIT_VALUE = 1;
-                    DataLabelsDisplayUnitSystem.UNSUPPORTED_FORMATS = /^(e\d*)$/i;
                     return DataLabelsDisplayUnitSystem;
                 }(DisplayUnitSystem));
+                // Constants
+                DataLabelsDisplayUnitSystem.AUTO_DISPLAYUNIT_VALUE = 0;
+                DataLabelsDisplayUnitSystem.NONE_DISPLAYUNIT_VALUE = 1;
+                DataLabelsDisplayUnitSystem.UNSUPPORTED_FORMATS = /^(e\d*)$/i;
                 formatting.DataLabelsDisplayUnitSystem = DataLabelsDisplayUnitSystem;
                 function createDisplayUnits(unitLookup, adjustMinBasedOnPreviousUnit) {
                     var units = [];
@@ -9729,7 +9731,7 @@ var powerbi;
         })(utils = extensibility.utils || (extensibility.utils = {}));
     })(extensibility = powerbi.extensibility || (powerbi.extensibility = {}));
 })(powerbi || (powerbi = {}));
-//# sourceMappingURL=index.js.map
+
 /*
  *  Power BI Visualizations
  *
@@ -10029,8 +10031,8 @@ var powerbi;
     (function (extensibility) {
         var visual;
         (function (visual) {
-            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337;
-            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337) {
+            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV;
+            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV) {
                 var TextUtility;
                 (function (TextUtility) {
                     var canvasCtx;
@@ -10166,7 +10168,7 @@ var powerbi;
             
                         return lines;
                     }*/
-                })(TextUtility = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.TextUtility || (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.TextUtility = {}));
+                })(TextUtility = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.TextUtility || (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.TextUtility = {}));
                 var PixelConverter;
                 (function (PixelConverter) {
                     var PxPtRatio = 4 / 3;
@@ -10204,8 +10206,8 @@ var powerbi;
                         return px / PxPtRatio;
                     }
                     PixelConverter.toPoint = toPoint;
-                })(PixelConverter = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter || (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter = {}));
-            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 || (visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = {}));
+                })(PixelConverter = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.PixelConverter || (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.PixelConverter = {}));
+            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV || (visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = {}));
         })(visual = extensibility.visual || (extensibility.visual = {}));
     })(extensibility = powerbi.extensibility || (powerbi.extensibility = {}));
 })(powerbi || (powerbi = {}));
@@ -10215,8 +10217,8 @@ var powerbi;
     (function (extensibility) {
         var visual;
         (function (visual) {
-            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337;
-            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337) {
+            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV;
+            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV) {
                 /**
                  * Gets property value for a particular object.
                  *
@@ -10238,7 +10240,7 @@ var powerbi;
                     }
                     return defaultValue;
                 }
-                PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue = getValue;
+                PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue = getValue;
                 /**
                  * Gets property value for a particular object in a category.
                  *
@@ -10265,8 +10267,8 @@ var powerbi;
                     }
                     return defaultValue;
                 }
-                PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getCategoricalObjectValue = getCategoricalObjectValue;
-            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 || (visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = {}));
+                PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getCategoricalObjectValue = getCategoricalObjectValue;
+            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV || (visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = {}));
         })(visual = extensibility.visual || (extensibility.visual = {}));
     })(extensibility = powerbi.extensibility || (powerbi.extensibility = {}));
 })(powerbi || (powerbi = {}));
@@ -10281,8 +10283,8 @@ var powerbi;
     (function (extensibility) {
         var visual;
         (function (visual_1) {
-            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337;
-            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337) {
+            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV;
+            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV) {
                 var OKVizUtility;
                 (function (OKVizUtility) {
                     var Formatter = (function () {
@@ -10359,7 +10361,7 @@ var powerbi;
                         if (options.type !== powerbi.VisualUpdateType.Data && options.type !== powerbi.VisualUpdateType.ViewMode && options.type !== powerbi.VisualUpdateType.All)
                             return;
                         var persistU = false;
-                        var u = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(options.dataViews[0].metadata.objects, "t", "u", null);
+                        var u = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(options.dataViews[0].metadata.objects, "t", "u", null);
                         if (!u) {
                             u = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
                                 var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -10678,8 +10680,8 @@ var powerbi;
                         }, 1);
                     }
                     OKVizUtility.spinner = spinner;
-                })(OKVizUtility = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility || (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility = {}));
-            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = visual_1.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 || (visual_1.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = {}));
+                })(OKVizUtility = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility || (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility = {}));
+            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = visual_1.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV || (visual_1.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = {}));
         })(visual = extensibility.visual || (extensibility.visual = {}));
     })(extensibility = powerbi.extensibility || (powerbi.extensibility = {}));
 })(powerbi || (powerbi = {}));
@@ -10693,8 +10695,8 @@ var powerbi;
     (function (extensibility) {
         var visual;
         (function (visual) {
-            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337;
-            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337) {
+            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV;
+            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV) {
                 var OKVizUtility;
                 (function (OKVizUtility) {
                     var visionDefs = '<defs><filter id="visionNormal"><feColorMatrix values="1 0 0 0 0				0 1 0 0 0				0 0 1 0 0				0 0 0 1 0"/></filter><filter id="visionProtanopia" color-interpolation-filters="sRGB"><feColorMatrix values="0.152286 1.052583 -0.204868 0 0				0.114503 0.786281 0.099216 0 0				-0.003882 -0.048116 1.051998 0 0				0 0 0 1 0"/><feComponentTransfer><feFuncB type="gamma" exponent=".9"/><feFuncR type="gamma" exponent=".9"/><feFuncG type="gamma" exponent=".9"/></feComponentTransfer></filter><filter id="visionProtanomaly" color-interpolation-filters="sRGB"><feColorMatrix values="0.458064 0.679578 -0.137642 0 0				0.092785 0.846313 0.060902 0 0				-0.007494 -0.016807 1.024301 0 0				0 0 0 1 0"/><feComponentTransfer><feFuncB type="gamma" exponent=".9"/><feFuncR type="gamma" exponent=".9"/><feFuncG type="gamma" exponent=".9"/></feComponentTransfer></filter><filter id="visionDeuteranopia" color-interpolation-filters="sRGB"><feColorMatrix values="0.367322 0.860646 -0.227968 0 0				0.280085 0.672501 0.047413 0 0				-0.011820 0.042940 0.968881 0 0				0 0 0 1 0"/><feComponentTransfer><feFuncB type="gamma" exponent=".9"/><feFuncR type="gamma" exponent=".9"/><feFuncG type="gamma" exponent=".9"/></feComponentTransfer></filter><filter id="visionDeuteranomaly" color-interpolation-filters="sRGB"><feColorMatrix values="0.547494 0.607765 -0.155259 0 0				0.181692 0.781742 0.036566 0 0				-0.010410 0.027275 0.983136 0 0				0 0 0 1 0"/><feComponentTransfer><feFuncB type="gamma" exponent=".9"/><feFuncR type="gamma" exponent=".9"/><feFuncG type="gamma" exponent=".9"/></feComponentTransfer></filter><filter id="visionTritanopia" color-interpolation-filters="sRGB"><feColorMatrix values="1.255528 -0.076749 -0.178779 0 0				-0.078411 0.930809 0.147602 0 0				0.004733 0.691367 0.303900 0 0				0 0 0 1 0"/><feComponentTransfer><feFuncB type="gamma" exponent=".9"/><feFuncR type="gamma" exponent=".9"/><feFuncG type="gamma" exponent=".9"/></feComponentTransfer></filter><filter id="visionTritanomaly" color-interpolation-filters="sRGB"><feColorMatrix values="1.017277 0.027029 -0.044306 0 0				-0.006113 0.958479 0.047634 0 0				0.006379 0.248708 0.744913 0 0				0 0 0 1 0"/><feComponentTransfer><feFuncB type="gamma" exponent=".9"/><feFuncR type="gamma" exponent=".9"/><feFuncG type="gamma" exponent=".9"/></feComponentTransfer></filter><filter id="visionAchromatopsia" color-interpolation-filters="sRGB"><feColorMatrix values="0.212656 0.715158 0.072186 0 0				0.212656 0.715158 0.072186 0 0				0.212656 0.715158 0.072186 0 0				0 0 0 1 0"/><feColorMatrix type="saturate" values="0" color-interpolation-filters="sRGB"/><feComponentTransfer><feFuncR type="gamma" exponent=".9"/><feFuncG type="gamma" exponent=".9"/><feFuncB type="gamma" exponent=".9"/></feComponentTransfer></filter><filter id="visionAchromatomaly" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0.5"/><feComponentTransfer><feFuncR type="gamma" exponent=".9"/><feFuncG type="gamma" exponent=".9"/><feFuncB type="gamma" exponent=".9"/></feComponentTransfer></filter><filter id="visionLowContrast" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncR type="linear" slope=".5" intercept=".25"/><feFuncG type="linear" slope=".5" intercept=".25"/><feFuncB type="linear" slope=".5" intercept=".25"/></feComponentTransfer></filter></defs>';
@@ -10722,8 +10724,8 @@ var powerbi;
                         applyColorBlindVision('normal', element);
                     }
                     OKVizUtility.revertColorBlindVision = revertColorBlindVision;
-                })(OKVizUtility = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility || (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility = {}));
-            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 || (visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = {}));
+                })(OKVizUtility = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility || (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility = {}));
+            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV || (visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = {}));
         })(visual = extensibility.visual || (extensibility.visual = {}));
     })(extensibility = powerbi.extensibility || (powerbi.extensibility = {}));
 })(powerbi || (powerbi = {}));
@@ -10759,8 +10761,8 @@ var powerbi;
     (function (extensibility) {
         var visual;
         (function (visual) {
-            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337;
-            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337) {
+            var PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV;
+            (function (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV) {
                 function defaultSettings() {
                     return {
                         dataLabel: {
@@ -10815,65 +10817,65 @@ var powerbi;
                         var objects = dataViews[0].metadata.objects;
                         settings = {
                             dataLabel: {
-                                aggregate: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "dataLabel", "aggregate", settings.dataLabel.aggregate),
-                                alignment: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "dataLabel", "alignment", settings.dataLabel.alignment),
-                                fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "dataLabel", "fill", settings.dataLabel.fill),
-                                unit: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "dataLabel", "unit", settings.dataLabel.unit),
-                                precision: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "dataLabel", "precision", settings.dataLabel.precision),
-                                fontFamily: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "dataLabel", "fontFamily", settings.dataLabel.fontFamily),
-                                fontSize: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "dataLabel", "fontSize", settings.dataLabel.fontSize),
-                                variance: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "dataLabel", "variance", settings.dataLabel.variance),
-                                variancePrecision: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "dataLabel", "variancePrecision", settings.dataLabel.variancePrecision),
+                                aggregate: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "dataLabel", "aggregate", settings.dataLabel.aggregate),
+                                alignment: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "dataLabel", "alignment", settings.dataLabel.alignment),
+                                fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "dataLabel", "fill", settings.dataLabel.fill),
+                                unit: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "dataLabel", "unit", settings.dataLabel.unit),
+                                precision: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "dataLabel", "precision", settings.dataLabel.precision),
+                                fontFamily: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "dataLabel", "fontFamily", settings.dataLabel.fontFamily),
+                                fontSize: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "dataLabel", "fontSize", settings.dataLabel.fontSize),
+                                variance: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "dataLabel", "variance", settings.dataLabel.variance),
+                                variancePrecision: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "dataLabel", "variancePrecision", settings.dataLabel.variancePrecision),
                             },
                             categoryLabel: {
-                                show: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "categoryLabel", "show", settings.categoryLabel.show),
-                                type: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "categoryLabel", "type", settings.categoryLabel.type),
-                                text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "categoryLabel", "text", settings.categoryLabel.text),
-                                fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "categoryLabel", "fill", settings.categoryLabel.fill),
-                                fontSize: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "categoryLabel", "fontSize", settings.categoryLabel.fontSize),
-                                wordWrap: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "categoryLabel", "wordWrap", settings.categoryLabel.wordWrap)
+                                show: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "categoryLabel", "show", settings.categoryLabel.show),
+                                type: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "categoryLabel", "type", settings.categoryLabel.type),
+                                text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "categoryLabel", "text", settings.categoryLabel.text),
+                                fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "categoryLabel", "fill", settings.categoryLabel.fill),
+                                fontSize: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "categoryLabel", "fontSize", settings.categoryLabel.fontSize),
+                                wordWrap: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "categoryLabel", "wordWrap", settings.categoryLabel.wordWrap)
                             },
                             states: {
-                                show: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "show", settings.states.show),
-                                showMessages: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "showMessages", settings.states.showMessages),
-                                calculate: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "calculate", settings.states.calculate),
-                                comparison: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "comparison", settings.states.comparison),
-                                behavior: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "behavior", settings.states.behavior),
-                                fontSize: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "fontSize", settings.states.fontSize),
-                                baseFill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "baseFill", settings.states.baseFill),
-                                manualState1: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState1", settings.states.manualState1),
-                                manualState1Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState1Fill", settings.states.manualState1Fill),
-                                manualState1Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState1Text", settings.states.manualState1Text),
-                                manualState1Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState1Icon", settings.states.manualState1Icon),
-                                manualState2: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState2", settings.states.manualState2),
-                                manualState2Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState2Fill", settings.states.manualState2Fill),
-                                manualState2Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState2Text", settings.states.manualState2Text),
-                                manualState2Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState2Icon", settings.states.manualState2Icon),
-                                manualState3: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState3", settings.states.manualState3),
-                                manualState3Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState3Fill", settings.states.manualState3Fill),
-                                manualState3Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState3Text", settings.states.manualState3Text),
-                                manualState3Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState3Icon", settings.states.manualState3Icon),
-                                manualState4: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState4", settings.states.manualState4),
-                                manualState4Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState4Fill", settings.states.manualState4Fill),
-                                manualState4Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState4Text", settings.states.manualState4Text),
-                                manualState4Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState4Icon", settings.states.manualState4Icon),
-                                manualState5: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState5", settings.states.manualState5),
-                                manualState5Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState5Fill", settings.states.manualState5Fill),
-                                manualState5Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState5Text", settings.states.manualState5Text),
-                                manualState5Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "states", "manualState5Icon", settings.states.manualState5Icon)
+                                show: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "show", settings.states.show),
+                                showMessages: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "showMessages", settings.states.showMessages),
+                                calculate: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "calculate", settings.states.calculate),
+                                comparison: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "comparison", settings.states.comparison),
+                                behavior: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "behavior", settings.states.behavior),
+                                fontSize: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "fontSize", settings.states.fontSize),
+                                baseFill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "baseFill", settings.states.baseFill),
+                                manualState1: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState1", settings.states.manualState1),
+                                manualState1Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState1Fill", settings.states.manualState1Fill),
+                                manualState1Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState1Text", settings.states.manualState1Text),
+                                manualState1Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState1Icon", settings.states.manualState1Icon),
+                                manualState2: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState2", settings.states.manualState2),
+                                manualState2Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState2Fill", settings.states.manualState2Fill),
+                                manualState2Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState2Text", settings.states.manualState2Text),
+                                manualState2Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState2Icon", settings.states.manualState2Icon),
+                                manualState3: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState3", settings.states.manualState3),
+                                manualState3Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState3Fill", settings.states.manualState3Fill),
+                                manualState3Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState3Text", settings.states.manualState3Text),
+                                manualState3Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState3Icon", settings.states.manualState3Icon),
+                                manualState4: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState4", settings.states.manualState4),
+                                manualState4Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState4Fill", settings.states.manualState4Fill),
+                                manualState4Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState4Text", settings.states.manualState4Text),
+                                manualState4Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState4Icon", settings.states.manualState4Icon),
+                                manualState5: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState5", settings.states.manualState5),
+                                manualState5Fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState5Fill", settings.states.manualState5Fill),
+                                manualState5Text: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState5Text", settings.states.manualState5Text),
+                                manualState5Icon: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "states", "manualState5Icon", settings.states.manualState5Icon)
                             },
                             trendLine: {
-                                weight: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "trendLine", "weight", settings.trendLine.weight),
-                                interpolation: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "trendLine", "interpolation", settings.trendLine.interpolation),
-                                fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "trendLine", "fill", settings.trendLine.fill),
-                                curShow: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "trendLine", "curShow", settings.trendLine.curShow),
-                                hiShow: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "trendLine", "hiShow", settings.trendLine.hiShow),
-                                hiFill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "trendLine", "hiFill", settings.trendLine.hiFill),
-                                loShow: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "trendLine", "loShow", settings.trendLine.loShow),
-                                loFill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "trendLine", "loFill", settings.trendLine.loFill)
+                                weight: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "trendLine", "weight", settings.trendLine.weight),
+                                interpolation: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "trendLine", "interpolation", settings.trendLine.interpolation),
+                                fill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "trendLine", "fill", settings.trendLine.fill),
+                                curShow: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "trendLine", "curShow", settings.trendLine.curShow),
+                                hiShow: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "trendLine", "hiShow", settings.trendLine.hiShow),
+                                hiFill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "trendLine", "hiFill", settings.trendLine.hiFill),
+                                loShow: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "trendLine", "loShow", settings.trendLine.loShow),
+                                loFill: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "trendLine", "loFill", settings.trendLine.loFill)
                             },
                             colorBlind: {
-                                vision: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(objects, "colorBlind", "vision", settings.colorBlind.vision)
+                                vision: PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(objects, "colorBlind", "vision", settings.colorBlind.vision)
                             }
                         };
                         //Limit some properties
@@ -10899,7 +10901,7 @@ var powerbi;
                         var category = (dataCategorical.categories ? dataCategorical.categories[0] : null);
                         var categories = (category ? category.values : ['']);
                         for (var i = 0; i < categories.length; i++) {
-                            var categoryValue = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.makeMeasureReadable(categories[i]);
+                            var categoryValue = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.makeMeasureReadable(categories[i]);
                             var dataPoint = void 0;
                             var target = void 0, targetDisplayName = void 0;
                             var stateValue = void 0;
@@ -10952,9 +10954,9 @@ var powerbi;
                                             if (settings.states.calculate == 'modifier' || settings.states.calculate == 'percentage')
                                                 value = 0;
                                         }
-                                        var color = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(dataValue.source.objects, 'states', 'fill', null);
-                                        var text = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(dataValue.source.objects, 'states', 'text', displayName);
-                                        var icon = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.getValue(dataValue.source.objects, 'states', 'icon', 'circle');
+                                        var color = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(dataValue.source.objects, 'states', 'fill', null);
+                                        var text = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(dataValue.source.objects, 'states', 'text', displayName);
+                                        var icon = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.getValue(dataValue.source.objects, 'states', 'icon', 'circle');
                                         states.push({
                                             value: value,
                                             color: (color ? color.solid.color : null),
@@ -11020,7 +11022,7 @@ var powerbi;
                                 }
                                 //Assign special palette to measure bound
                                 if (hasStates) {
-                                    var statesPalette = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.defaultPaletteForStates(states.length, settings.states.comparison);
+                                    var statesPalette = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.defaultPaletteForStates(states.length, settings.states.comparison);
                                     for (var s = 0; s < states.length; s++) {
                                         if (!states[s].color)
                                             states[s].color = statesPalette[s];
@@ -11049,8 +11051,8 @@ var powerbi;
                     function Visual(options) {
                         this.meta = {
                             name: 'Card with States',
-                            version: '1.3.3',
-                            dev: false
+                            version: '1.3.4',
+                            dev: true
                         };
                         console.log('%c' + this.meta.name + ' by OKViz ' + this.meta.version + (this.meta.dev ? ' (BETA)' : ''), 'font-weight:bold');
                         this.host = options.host;
@@ -11072,7 +11074,7 @@ var powerbi;
                         if (stateValue == null)
                             stateValue = value; //State Measure has been not defined, so we use Measure
                         var target = (this.model.dataPoints.length > 1 && this.model.settings.dataLabel.aggregate == 'sum' ? this.model.target : dataPoint.target);
-                        var formatter = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.Formatter.getFormatter({
+                        var formatter = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.Formatter.getFormatter({
                             format: dataPoint.format,
                             value: this.model.settings.dataLabel.unit,
                             formatSingleValues: (this.model.settings.dataLabel.unit == 0),
@@ -11143,9 +11145,9 @@ var powerbi;
                             .attr('height', containerSize.height)
                             .append('g');
                         //Data Label
-                        var dataLabelFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPoint(this.model.settings.dataLabel.fontSize);
+                        var dataLabelFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.PixelConverter.fromPoint(this.model.settings.dataLabel.fontSize);
                         var dataLabelFontFamily = (this.model.settings.dataLabel.fontFamily == "numbers" ? "'wf_standard-font',helvetica,arial,sans-serif" : "'wf_segoe-ui_Semibold', sans-serif");
-                        var dataLabelValue = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.TextUtility.getTailoredTextOrDefault({
+                        var dataLabelValue = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.TextUtility.getTailoredTextOrDefault({
                             text: formatter.format(value),
                             fontSize: dataLabelFontSize,
                             fontFamily: dataLabelFontFamily
@@ -11156,7 +11158,7 @@ var powerbi;
                                 dataLabelColor = dataPoint.states[stateIndex].color;
                             }
                             else if (this.model.settings.states.behavior == 'backcolor') {
-                                dataLabelColor = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color);
+                                dataLabelColor = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color);
                             }
                         }
                         var incrementalPos = {
@@ -11181,8 +11183,8 @@ var powerbi;
                         if (this.model.settings.dataLabel.variance && this.model.hasTarget) {
                             var variance = ((value - target) / (this.model.arePercentages ? 1 : target));
                             var varianceValue = (variance > 0 ? '+' : '') + ((variance * 100).toFixed(this.model.settings.dataLabel.variancePrecision == null ? 2 : this.model.settings.dataLabel.variancePrecision)) + '%';
-                            var varianceFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPoint(this.model.settings.dataLabel.fontSize - ((this.model.settings.dataLabel.fontFamily == 'numbers' ? 6 : 2)));
-                            var varianceWidth = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.TextUtility.measureTextWidth({
+                            var varianceFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.PixelConverter.fromPoint(this.model.settings.dataLabel.fontSize - ((this.model.settings.dataLabel.fontFamily == 'numbers' ? 6 : 2)));
+                            var varianceWidth = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.TextUtility.measureTextWidth({
                                 text: varianceValue,
                                 fontSize: varianceFontSize,
                                 fontFamily: dataLabelFontFamily
@@ -11193,7 +11195,7 @@ var powerbi;
                                     varianceColor = dataPoint.states[stateIndex].color;
                                 }
                                 else if (this.model.settings.states.behavior == 'backcolor') {
-                                    varianceColor = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color);
+                                    varianceColor = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color);
                                 }
                             }
                             dataLabel.attr('transform', 'translate(' + (-(varianceWidth / 2) - 4) + ',0)');
@@ -11208,10 +11210,10 @@ var powerbi;
                             })
                                 .text(varianceValue);
                         }
-                        incrementalPos.y += dataLabelBBox.height - (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPointToPixel(this.model.settings.dataLabel.fontSize) / (this.model.settings.dataLabel.fontFamily == 'numbers' ? 4 : 3));
+                        incrementalPos.y += dataLabelBBox.height - (PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.PixelConverter.fromPointToPixel(this.model.settings.dataLabel.fontSize) / (this.model.settings.dataLabel.fontFamily == 'numbers' ? 4 : 3));
                         //Category Label
                         if (this.model.settings.categoryLabel.show) {
-                            var categoryLabelFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPoint(this.model.settings.categoryLabel.fontSize);
+                            var categoryLabelFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.PixelConverter.fromPoint(this.model.settings.categoryLabel.fontSize);
                             var rawCategoryLabelValue = dataPoint.displayName;
                             if (this.model.settings.categoryLabel.type == 'category') {
                                 rawCategoryLabelValue = dataPoint.category;
@@ -11225,7 +11227,7 @@ var powerbi;
                             }
                             var categoryLabelValue = rawCategoryLabelValue;
                             if (!this.model.settings.categoryLabel.wordWrap && rawCategoryLabelValue && rawCategoryLabelValue != '') {
-                                categoryLabelValue = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.TextUtility.getTailoredTextOrDefault({
+                                categoryLabelValue = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.TextUtility.getTailoredTextOrDefault({
                                     text: rawCategoryLabelValue,
                                     fontSize: categoryLabelFontSize,
                                     fontFamily: 'sans-serif'
@@ -11236,7 +11238,7 @@ var powerbi;
                                 .attr('y', incrementalPos.y)
                                 .style({
                                 'font-size': categoryLabelFontSize,
-                                'fill': (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : this.model.settings.categoryLabel.fill.solid.color),
+                                'fill': (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : this.model.settings.categoryLabel.fill.solid.color),
                                 'text-anchor': 'middle'
                             })
                                 .text(categoryLabelValue);
@@ -11244,16 +11246,16 @@ var powerbi;
                             var categoryLabelBBox = categoryLabelNode.getBBox();
                             categoryLabel.attr('y', incrementalPos.y + (categoryLabelBBox.height / 2));
                             if (this.model.settings.categoryLabel.wordWrap) {
-                                PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.TextUtility.wrapAxis(categoryLabel, containerSize.width - padding.left - padding.right);
+                                PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.TextUtility.wrapAxis(categoryLabel, containerSize.width - padding.left - padding.right);
                             }
                             incrementalPos.y += categoryLabelNode.getBBox().height;
                         }
                         //Message label
                         if (stateIndex > -1 && this.model.settings.states.showMessages && dataPoint.states[stateIndex].text && dataPoint.states[stateIndex].text !== '') {
                             incrementalPos.y += 5;
-                            var iconSize_1 = (!dataPoint.states[stateIndex].icon || dataPoint.states[stateIndex].icon == '' ? 0 : ((PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPointToPixel(this.model.settings.states.fontSize) / 2)));
-                            var messageLabelFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.PixelConverter.fromPoint(this.model.settings.states.fontSize);
-                            var messageLabelValue = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.TextUtility.getTailoredTextOrDefault({
+                            var iconSize_1 = (!dataPoint.states[stateIndex].icon || dataPoint.states[stateIndex].icon == '' ? 0 : ((PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.PixelConverter.fromPointToPixel(this.model.settings.states.fontSize) / 2)));
+                            var messageLabelFontSize = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.PixelConverter.fromPoint(this.model.settings.states.fontSize);
+                            var messageLabelValue = PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.TextUtility.getTailoredTextOrDefault({
                                 text: dataPoint.states[stateIndex].text,
                                 fontSize: messageLabelFontSize,
                                 fontFamily: 'sans-serif'
@@ -11263,7 +11265,7 @@ var powerbi;
                                 .attr('y', incrementalPos.y)
                                 .style({
                                 'font-size': messageLabelFontSize,
-                                'fill': (this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : '#a6a6a6'),
+                                'fill': (this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : '#a6a6a6'),
                                 'text-anchor': 'middle'
                             })
                                 .text(messageLabelValue);
@@ -11277,14 +11279,14 @@ var powerbi;
                                     .attr('cx', incrementalPos.x - (messageBBox_1.width / 2) - (iconSize_1 / 2))
                                     .attr('cy', incrementalPos.y + (messageBBox_1.height / 2) - (iconSize_1 / 2))
                                     .attr('r', (iconSize_1 / 2))
-                                    .attr('fill', (this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : dataPoint.states[stateIndex].color));
+                                    .attr('fill', (this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : dataPoint.states[stateIndex].color));
                             }
                             else if (dataPoint.states[stateIndex].icon == 'up' || dataPoint.states[stateIndex].icon == 'down') {
                                 svgContainer
                                     .append('path')
                                     .attr("transform", function (d) { return "translate(" + (incrementalPos.x - (messageBBox_1.width / 2) - (iconSize_1 / 2)) + "," + (incrementalPos.y + (messageBBox_1.height / 2) - (iconSize_1 / 2)) + ")"; })
                                     .attr("d", d3.svg.symbol().type("triangle-" + dataPoint.states[stateIndex].icon))
-                                    .attr('fill', (this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : dataPoint.states[stateIndex].color));
+                                    .attr('fill', (this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : dataPoint.states[stateIndex].color));
                             }
                             else if (dataPoint.states[stateIndex].icon == 'good') {
                             }
@@ -11330,10 +11332,10 @@ var powerbi;
                                     .attr("d", line)
                                     .attr('stroke-linecap', 'round')
                                     .attr('stroke-width', this.model.settings.trendLine.weight)
-                                    .attr('stroke', (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : this.model.settings.trendLine.fill.solid.color))
+                                    .attr('stroke', (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : this.model.settings.trendLine.fill.solid.color))
                                     .attr('fill', 'none');
                                 if (this.model.settings.trendLine.curShow) {
-                                    var color = (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : this.model.settings.trendLine.fill.solid.color);
+                                    var color = (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : this.model.settings.trendLine.fill.solid.color);
                                     trendlineContainer_1.append('circle')
                                         .classed('point fixed', true)
                                         .attr('cx', x_1(0))
@@ -11391,7 +11393,7 @@ var powerbi;
                                         if (circle.empty())
                                             circle = trendlineContainer_1.append('circle').classed('point', true);
                                         var val_1 = self_1.model.dataPoints[foundIndex].value;
-                                        var color_1 = (stateIndex > -1 && self_1.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : self_1.model.settings.trendLine.fill.solid.color);
+                                        var color_1 = (stateIndex > -1 && self_1.model.settings.states.behavior == 'backcolor' ? PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) : self_1.model.settings.trendLine.fill.solid.color);
                                         if (self_1.model.settings.trendLine.hiShow && topValue_1.value == val_1) {
                                             color_1 = self_1.model.settings.trendLine.hiFill.solid.color;
                                         }
@@ -11441,7 +11443,7 @@ var powerbi;
                                 svgContainer.attr('transform', 'translate(0, ' + (((containerSize.height - padding.bottom - incrementalPos.y) / 2) - margin.top) + ')');
                             }
                         }
-                        PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.t([this.meta.name, this.meta.version], this.element, options, this.host, {
+                        PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.t([this.meta.name, this.meta.version], this.element, options, this.host, {
                             'cd1': this.model.settings.colorBlind.vision,
                             'cd2': (this.model.settings.states.show ? this.model.dataPoints[0].states.length : 0),
                             'cd3': this.model.settings.states.comparison,
@@ -11451,7 +11453,7 @@ var powerbi;
                             'cd15': this.meta.dev
                         });
                         //Color Blind module
-                        PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.OKVizUtility.applyColorBlindVision(this.model.settings.colorBlind.vision, this.element);
+                        PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.OKVizUtility.applyColorBlindVision(this.model.settings.colorBlind.vision, this.element);
                     };
                     Visual.prototype.destroy = function () {
                     };
@@ -11683,8 +11685,8 @@ var powerbi;
                     };
                     return Visual;
                 }());
-                PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.Visual = Visual;
-            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 || (visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = {}));
+                PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.Visual = Visual;
+            })(PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV || (visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV = {}));
         })(visual = extensibility.visual || (extensibility.visual = {}));
     })(extensibility = powerbi.extensibility || (powerbi.extensibility = {}));
 })(powerbi || (powerbi = {}));
@@ -11694,13 +11696,13 @@ var powerbi;
     (function (visuals) {
         var plugins;
         (function (plugins) {
-            plugins.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337 = {
-                name: 'PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337',
+            plugins.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV_DEBUG = {
+                name: 'PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV_DEBUG',
                 displayName: 'Card with States by OKViz',
                 class: 'Visual',
-                version: '1.3.3',
+                version: '1.3.4',
                 apiVersion: '1.5.0',
-                create: function (options) { return new powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337.Visual(options); },
+                create: function (options) { return new powerbi.extensibility.visual.PBI_CV_7B952816_A48F_49B4_9E13_15E3BB2C0337_DEV.Visual(options); },
                 custom: true
             };
         })(plugins = visuals.plugins || (visuals.plugins = {}));
