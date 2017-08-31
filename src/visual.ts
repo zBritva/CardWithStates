@@ -77,10 +77,14 @@ module powerbi.extensibility.visual {
             fill: Fill;
             unit?: number;
             precision?: number; 
+            locale?: string;
             fontFamily: string;
             fontSize: number;
             variance: boolean;
+            varianceType: string;
+            variancePosition: string;
             variancePrecision?: number;
+            varianceFontSize: number;
         };
         categoryLabel: {
             show: boolean;
@@ -88,6 +92,7 @@ module powerbi.extensibility.visual {
             text?: string;
             fill: Fill;
             fontSize: number;
+            fontFamily: string;
             wordWrap: boolean;
         };
         states: {
@@ -98,6 +103,7 @@ module powerbi.extensibility.visual {
             comparison: string;
             baseFill: Fill;
             fontSize: number;
+            fontFamily: string;
             manualState1?: number;
             manualState1Fill?: Fill;
             manualState1Text?: string;
@@ -120,6 +126,8 @@ module powerbi.extensibility.visual {
             manualState5Icon?: string;
         };
         trendLine: {
+            start?: number;
+            end?: number;
             weight: number;
             interpolation: string;
             fill: Fill;
@@ -141,27 +149,33 @@ module powerbi.extensibility.visual {
             dataLabel: {
                 aggregate: 'last',
                 alignment: 'middle',
-                variance: false,
                 fill: {solid: { color: '#333' } },
                 unit: 0,
-                fontFamily: 'numbers',
-                fontSize: 30
+                locale: '',
+                fontSize: 30,
+                fontFamily:  'wf_standard-font,helvetica,arial,sans-serif',
+                variance: false,
+                varianceType: 'percentage',
+                variancePosition: 'right',
+                varianceFontSize: 80
             },
             categoryLabel: {
                 show: true,
                 type: 'measure',
                 fill: { solid: { color: '#a6a6a6' } },
                 fontSize: 12,
+                fontFamily: '"Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif',
                 wordWrap: false
             },
             states: {
                 show: true,
                 behavior: 'label',
-                showMessages: false,
                 comparison: '>',
                 calculate: 'absolute',
                 baseFill: { solid: { color: '#333' } },
-                fontSize: 10
+                showMessages: false,
+                fontSize: 10,
+                fontFamily: '"Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif'
             },
             trendLine: {
                 weight: 2,
@@ -198,11 +212,15 @@ module powerbi.extensibility.visual {
                     alignment: getValue<string>(objects, "dataLabel", "alignment", settings.dataLabel.alignment),
                     fill: getValue<Fill>(objects, "dataLabel", "fill", settings.dataLabel.fill),
                     unit: getValue<number>(objects, "dataLabel", "unit", settings.dataLabel.unit),
+                    locale: getValue<string>(objects, "dataLabel", "locale", settings.dataLabel.locale),
                     precision: getValue<number>(objects, "dataLabel", "precision", settings.dataLabel.precision),
                     fontFamily: getValue<string>(objects, "dataLabel", "fontFamily", settings.dataLabel.fontFamily),
                     fontSize: getValue<number>(objects, "dataLabel", "fontSize", settings.dataLabel.fontSize),
                     variance: getValue<boolean>(objects, "dataLabel", "variance", settings.dataLabel.variance),
+                    varianceType: getValue<string>(objects, "dataLabel", "varianceType", settings.dataLabel.varianceType),
                     variancePrecision: getValue<number>(objects, "dataLabel", "variancePrecision", settings.dataLabel.variancePrecision),
+                    varianceFontSize: getValue<number>(objects, "dataLabel", "varianceFontSize", settings.dataLabel.varianceFontSize),
+                    variancePosition: getValue<string>(objects, "dataLabel", "variancePosition", settings.dataLabel.variancePosition),
                 },
                 categoryLabel: {
                     show: getValue<boolean>(objects, "categoryLabel", "show", settings.categoryLabel.show),
@@ -210,6 +228,7 @@ module powerbi.extensibility.visual {
                     text: getValue<string>(objects, "categoryLabel", "text", settings.categoryLabel.text),
                     fill: getValue<Fill>(objects, "categoryLabel", "fill", settings.categoryLabel.fill),
                     fontSize: getValue<number>(objects, "categoryLabel", "fontSize", settings.categoryLabel.fontSize),
+                    fontFamily: getValue<string>(objects, "categoryLabel", "fontFamily", settings.categoryLabel.fontFamily),
                     wordWrap: getValue<boolean>(objects, "categoryLabel", "wordWrap", settings.categoryLabel.wordWrap)
                 },
                 states: {
@@ -219,6 +238,7 @@ module powerbi.extensibility.visual {
                     comparison: getValue<string>(objects, "states", "comparison", settings.states.comparison),
                     behavior: getValue<string>(objects, "states", "behavior", settings.states.behavior),
                     fontSize: getValue<number>(objects, "states", "fontSize", settings.states.fontSize),
+                    fontFamily: getValue<string>(objects, "states", "fontFamily", settings.states.fontFamily),
                     baseFill: getValue<Fill>(objects, "states", "baseFill", settings.states.baseFill),
 
                     manualState1: getValue<number>(objects, "states", "manualState1", settings.states.manualState1),
@@ -247,6 +267,8 @@ module powerbi.extensibility.visual {
                     manualState5Icon: getValue<string>(objects, "states", "manualState5Icon", settings.states.manualState5Icon)
                 },
                 trendLine: {
+                    start: getValue<number>(objects, "trendLine", "start", settings.trendLine.start),
+                    end: getValue<number>(objects, "trendLine", "end", settings.trendLine.end),
                     weight: getValue<number>(objects, "trendLine", "weight", settings.trendLine.weight),
                     interpolation: getValue<string>(objects, "trendLine", "interpolation", settings.trendLine.interpolation),
                     fill: getValue<Fill>(objects, "trendLine", "fill", settings.trendLine.fill),
@@ -268,8 +290,12 @@ module powerbi.extensibility.visual {
             if (settings.dataLabel.precision > 5) settings.dataLabel.precision = 5;
             if (settings.dataLabel.variancePrecision < 0) settings.dataLabel.variancePrecision = 0;
             if (settings.dataLabel.variancePrecision > 5) settings.dataLabel.variancePrecision = 5;
-          
-        }
+
+            if (settings.dataLabel.locale == '') settings.dataLabel.locale = host.locale;
+            
+            //Compatibility check
+            if (settings.dataLabel.fontFamily == 'numbers') settings.dataLabel.fontFamily = 'wf_standard-font,helvetica,arial,sans-serif';
+        }   
 
     
         //Get DataPoints
@@ -277,7 +303,7 @@ module powerbi.extensibility.visual {
         let arePercentages = false;
         let hasTarget = false;
         let hasStates = false;
-        let totalValue, totalStateValue, totalTarget;
+        let aggregatedValue, aggregatedStateValue, aggregatedTarget;
 
         if (hasCategoricalData) {
             let dataCategorical = dataViews[0].categorical;
@@ -301,12 +327,22 @@ module powerbi.extensibility.visual {
                     let value: any = dataValue.values[i];
 
                     if (dataValue.source.roles['Values']){ //measure -> Values for legacy compatibility
-                        if (value !== null) {
-                            if (!totalValue)
-                                totalValue = value;
-                            else
-                                totalValue += value;
+                        
+                        if (settings.dataLabel.aggregate == 'sum' || settings.dataLabel.aggregate == 'avg') {
+                            if (value !== null) {
+                                if (!aggregatedValue)
+                                    aggregatedValue = value;
+                                else
+                                    aggregatedValue += value;
+                            }
+                        } else if (settings.dataLabel.aggregate == 'max') {
+                            if (!aggregatedValue)
+                                aggregatedValue = dataValue.maxLocal;
+                        } else if (settings.dataLabel.aggregate == 'min') {
+                            if (!aggregatedValue)
+                                aggregatedValue = dataValue.minLocal;
                         }
+
                         dataPoint = {
                             value: value,
                             displayName: displayName,
@@ -320,14 +356,22 @@ module powerbi.extensibility.visual {
                     }
 
                     if (dataValue.source.roles['TargetValue']){ //statesMeasure -> TargetValue for legacy compatibility
-                        if (value !== null) {
+                        if (settings.dataLabel.aggregate == 'sum' || settings.dataLabel.aggregate == 'avg') {
+                            if (value !== null) {
 
-                            if (!totalStateValue)
-                                totalStateValue = value;
-                            else
-                                totalStateValue += value;
+                                if (!aggregatedStateValue)
+                                    aggregatedStateValue = value;
+                                else
+                                    aggregatedStateValue += value;
 
-                            stateValue = value;
+                                stateValue = value;
+                            }
+                        } else if (settings.dataLabel.aggregate == 'max') {
+                            if (!aggregatedStateValue)
+                                aggregatedStateValue = dataValue.maxLocal;
+                        } else if (settings.dataLabel.aggregate == 'min') {
+                            if (!aggregatedStateValue)
+                                aggregatedStateValue = dataValue.minLocal;
                         }
                     }
         
@@ -345,10 +389,19 @@ module powerbi.extensibility.visual {
                                  target = value;
                                  targetDisplayName = displayName;
 
-                                 if (!totalTarget) 
-                                    totalTarget = value;
-                                else
-                                    totalTarget += value;
+                                 if (settings.dataLabel.aggregate == 'sum' || settings.dataLabel.aggregate == 'avg') {
+                                    if (!aggregatedTarget) 
+                                        aggregatedTarget = value;
+                                    else
+                                        aggregatedTarget += value;
+
+                                } else if (settings.dataLabel.aggregate == 'max') {
+                                    if (!aggregatedTarget)
+                                        aggregatedTarget = dataValue.maxLocal;
+                                } else if (settings.dataLabel.aggregate == 'min') {
+                                    if (!aggregatedTarget)
+                                        aggregatedTarget = dataValue.minLocal;
+                                }
 
                                  if (settings.states.calculate == 'modifier' || settings.states.calculate == 'percentage')
                                     value = 0;
@@ -454,11 +507,19 @@ module powerbi.extensibility.visual {
 
         }  
 
+        if (dataPoints.length > 1) {
+            if (settings.dataLabel.aggregate == 'avg') {
+                aggregatedValue = aggregatedValue / dataPoints.length;
+                aggregatedStateValue = aggregatedStateValue / dataPoints.length;
+                aggregatedTarget = aggregatedTarget / dataPoints.length;
+            }
+        }
+
         return {
             dataPoints: dataPoints,
-            value: totalValue,
-            stateValue: totalStateValue,
-            target: totalTarget,
+            value: aggregatedValue,
+            stateValue: aggregatedStateValue,
+            target: aggregatedTarget,
             arePercentages: arePercentages,
             hasTarget: hasTarget,
             hasStates: hasStates,
@@ -478,11 +539,11 @@ module powerbi.extensibility.visual {
         private window: any;
  
         constructor(options: VisualConstructorOptions) {
-            
+      
             this.meta = {
                 name: 'Card with States',
-                version: '1.3.4',
-                dev: true
+                version: '1.3.5',
+                dev: false
             };
             console.log('%c' + this.meta.name + ' by OKViz ' + this.meta.version + (this.meta.dev ? ' (BETA)' : ''), 'font-weight:bold');
 
@@ -504,11 +565,11 @@ module powerbi.extensibility.visual {
             let selectionManager  = this.selectionManager;
             let dataPoint = this.model.dataPoints[0]; 
             
-            let value = (this.model.dataPoints.length > 1 && this.model.settings.dataLabel.aggregate == 'sum' ? this.model.value : dataPoint.value);
-            let stateValue = (this.model.dataPoints.length > 1 && this.model.settings.dataLabel.aggregate == 'sum' ? this.model.stateValue : dataPoint.stateValue);   
+            let value = (this.model.dataPoints.length > 1 && this.model.settings.dataLabel.aggregate !== 'last' ? this.model.value : dataPoint.value);
+            let stateValue = (this.model.dataPoints.length > 1 && this.model.settings.dataLabel.aggregate !== 'last' ? this.model.stateValue : dataPoint.stateValue);   
             if (stateValue == null) stateValue = value; //State Measure has been not defined, so we use Measure
 
-            let target = (this.model.dataPoints.length > 1 && this.model.settings.dataLabel.aggregate == 'sum' ? this.model.target : dataPoint.target);
+            let target = (this.model.dataPoints.length > 1 && this.model.settings.dataLabel.aggregate !== 'last' ? this.model.target : dataPoint.target);
 
             let formatter = OKVizUtility.Formatter.getFormatter({
                 format: dataPoint.format,
@@ -517,8 +578,9 @@ module powerbi.extensibility.visual {
                 allowFormatBeautification: true,
                 precision: this.model.settings.dataLabel.precision,
                 displayUnitSystemType: 2, //Default = 0, Verbose = 1, WholeUnits = 2, DataLabels = 3
+                cultureSelector: this.model.settings.dataLabel.locale
             }); 
-     
+
             //States
             let stateIndex = -1;
             if (this.model.settings.states.show) {
@@ -594,12 +656,10 @@ module powerbi.extensibility.visual {
              
             //Data Label
             let dataLabelFontSize = PixelConverter.fromPoint(this.model.settings.dataLabel.fontSize);
-            let dataLabelFontFamily = (this.model.settings.dataLabel.fontFamily == "numbers" ? "'wf_standard-font',helvetica,arial,sans-serif" : "'wf_segoe-ui_Semibold', sans-serif");
-
             let dataLabelValue = TextUtility.getTailoredTextOrDefault({
                 text: formatter.format(value),
                 fontSize: dataLabelFontSize,
-                fontFamily: dataLabelFontFamily  
+                fontFamily: this.model.settings.dataLabel.fontFamily  
             }, containerSize.width - padding.left - padding.right);  
            
             let dataLabelColor = (this.model.settings.states.show ?  this.model.settings.states .baseFill : this.model.settings.dataLabel.fill).solid.color;
@@ -612,8 +672,8 @@ module powerbi.extensibility.visual {
             }    
 
             let incrementalPos = {
-                x: ((containerSize.width - padding.left - padding.right) / 2),
-                y: padding.top + (this.model.settings.dataLabel.fontFamily == "numbers" ? 15 : 10)
+                x: (containerSize.width / 2),
+                y: padding.top + 15
             };
 
             let dataLabel = svgContainer.append('text')
@@ -623,7 +683,7 @@ module powerbi.extensibility.visual {
                 .style({
                     'font-size': dataLabelFontSize,
                     'fill': dataLabelColor,
-                    'font-family': dataLabelFontFamily,
+                    'font-family': this.model.settings.dataLabel.fontFamily,
                     'text-anchor': 'middle',
                     'border': '1px solid #000'
                 }) 
@@ -637,13 +697,14 @@ module powerbi.extensibility.visual {
             //Variance
             if (this.model.settings.dataLabel.variance && this.model.hasTarget) {
 
-                let variance = ((value - target) / (this.model.arePercentages ? 1 : target));
-                let varianceValue = (variance > 0 ? '+':'') + ((variance * 100).toFixed(this.model.settings.dataLabel.variancePrecision == null ? 2: this.model.settings.dataLabel.variancePrecision)) + '%';
-                let varianceFontSize = PixelConverter.fromPoint(this.model.settings.dataLabel.fontSize - ((this.model.settings.dataLabel.fontFamily == 'numbers' ? 6 : 2)));
+                let diff = (value - target);
+                let variance = (diff / target);
+                let varianceValue = (variance > 0 ? '+':'') + (this.model.settings.dataLabel.varianceType == 'percentage' ? ((variance * 100).toFixed(this.model.settings.dataLabel.variancePrecision == null ? 2: this.model.settings.dataLabel.variancePrecision)) + '%' : formatter.format(diff));
+                let varianceFontSize = PixelConverter.fromPoint(this.model.settings.dataLabel.fontSize / 100 * this.model.settings.dataLabel.varianceFontSize);
                 let varianceWidth = TextUtility.measureTextWidth({
                     text: varianceValue,
                     fontSize: varianceFontSize,
-                    fontFamily: dataLabelFontFamily
+                    fontFamily: this.model.settings.dataLabel.fontFamily
                 });
 
                 let varianceColor = (this.model.settings.states.show ?  this.model.settings.states .baseFill : this.model.settings.dataLabel.fill).solid.color;
@@ -655,25 +716,36 @@ module powerbi.extensibility.visual {
                     }
                 }
 
-                dataLabel.attr('transform', 'translate(' + (-(varianceWidth/2) - 4) + ',0)');
-
-                
-                svgContainer.append('text')
-                    .attr('x', incrementalPos.x + (dataLabelBBox.width / 2) + 8)
-                    .attr('y', incrementalPos.y + (dataLabelBBox.height / 2))
+                let varianceLabel = svgContainer.append('text')
+                    .attr('x', incrementalPos.x)
+                    .attr('y', incrementalPos.y)
                     //.attr('dominant-baseline', 'hanging')
                     .style({
                         'font-size': varianceFontSize,
                         'fill': varianceColor,
-                        'font-family': dataLabelFontFamily,
+                        'font-family': this.model.settings.dataLabel.fontFamily,
                         'text-anchor': 'middle'
                     })
                     .text(varianceValue);
+
+                let varianceLabelNode = <any>varianceLabel.node();
+                let varianceLabelBBox = varianceLabelNode.getBBox();
+                
+                if (this.model.settings.dataLabel.variancePosition == 'right') {
+                    dataLabel.attr('transform', 'translate(' + (-(varianceWidth/2) - 4) + ',0)');
+                    varianceLabel.attr('x', incrementalPos.x + (dataLabelBBox.width / 2) + 8)
+                    varianceLabel.attr('y', incrementalPos.y + (dataLabelBBox.height / 2));
+
+                } else if (this.model.settings.dataLabel.variancePosition == 'bottom') {
+                    
+                    varianceLabel.attr('y', incrementalPos.y + dataLabelBBox.height + (varianceLabelBBox.height / 2) - 5);
+                    incrementalPos.y += (varianceLabelBBox.height / 2) + 10;
+                }
                 
             }
 
             
-            incrementalPos.y += dataLabelBBox.height - (PixelConverter.fromPointToPixel(this.model.settings.dataLabel.fontSize) / (this.model.settings.dataLabel.fontFamily == 'numbers' ? 4 : 3));
+            incrementalPos.y += dataLabelBBox.height;
 
             //Category Label
             if (this.model.settings.categoryLabel.show) {
@@ -681,7 +753,17 @@ module powerbi.extensibility.visual {
                 let categoryLabelFontSize = PixelConverter.fromPoint(this.model.settings.categoryLabel.fontSize);
 
                 let rawCategoryLabelValue = dataPoint.displayName;
-                if (this.model.settings.categoryLabel.type == 'category') {
+                if (this.model.settings.categoryLabel.type == 'measure_with_aggregation') {
+                    if (this.model.settings.dataLabel.aggregate == 'last')
+                        rawCategoryLabelValue = dataPoint.category + ': ' + rawCategoryLabelValue;
+                    else if (this.model.settings.dataLabel.aggregate == 'avg')
+                        rawCategoryLabelValue = 'Average of ' + rawCategoryLabelValue;
+                    else if (this.model.settings.dataLabel.aggregate == 'min')
+                        rawCategoryLabelValue = 'Min of ' + rawCategoryLabelValue;
+                    else if (this.model.settings.dataLabel.aggregate == 'max')
+                        rawCategoryLabelValue = 'Max of ' + rawCategoryLabelValue;
+
+                } else if (this.model.settings.categoryLabel.type == 'category') {
                     rawCategoryLabelValue = dataPoint.category;
                 } else if (this.model.settings.categoryLabel.type == 'custom') {
                     rawCategoryLabelValue = this.model.settings.categoryLabel.text;
@@ -695,7 +777,7 @@ module powerbi.extensibility.visual {
                     categoryLabelValue = TextUtility.getTailoredTextOrDefault({
                         text: rawCategoryLabelValue,
                         fontSize: categoryLabelFontSize,
-                        fontFamily: 'sans-serif'
+                        fontFamily: this.model.settings.categoryLabel.fontFamily
                     }, containerSize.width - padding.left - padding.right);  
                 }
 
@@ -705,6 +787,7 @@ module powerbi.extensibility.visual {
                     //.attr('dominant-baseline', 'hanging')
                     .style({
                         'font-size': categoryLabelFontSize,
+                        'font-family': this.model.settings.categoryLabel.fontFamily,
                         'fill': (stateIndex > -1 && this.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  this.model.settings.categoryLabel.fill.solid.color),
                         'text-anchor': 'middle'
                     })
@@ -736,7 +819,7 @@ module powerbi.extensibility.visual {
                 let messageLabelValue = TextUtility.getTailoredTextOrDefault({
                         text: dataPoint.states[stateIndex].text,
                         fontSize: messageLabelFontSize,
-                        fontFamily: 'sans-serif'
+                        fontFamily: this.model.settings.states.fontFamily
                     }, containerSize.width - padding.left - padding.right); 
 
                 let messageLabel = svgContainer.append('text')
@@ -745,6 +828,7 @@ module powerbi.extensibility.visual {
                     //.attr('dominant-baseline', 'hanging')
                     .style({
                         'font-size': messageLabelFontSize,
+                        'font-family': this.model.settings.states.fontFamily,
                         'fill': (this.model.settings.states.behavior == 'backcolor' ? OKVizUtility.autoTextColor(dataPoint.states[stateIndex].color) :  '#a6a6a6'),
                         'text-anchor': 'middle'
                     })
@@ -787,15 +871,28 @@ module powerbi.extensibility.visual {
 
                 //We use this method and not d3.extent because we need to know hi/low index points
                 //d3.extent(this.model.dataPoints, function(d) { return d.value; });
-                let topValue, bottomValue;
+                let topValue = {indexes: [], value:0};
+                let bottomValue = {indexes: [], value:Infinity};
                 for (let ii = 0; ii < this.model.dataPoints.length; ii++){
-                    if (!topValue || this.model.dataPoints[ii].value > topValue.value) {
-                        topValue = { index: ii, value: this.model.dataPoints[ii].value, category: this.model.dataPoints[ii].category };
+                    if (this.model.dataPoints[ii].value > topValue.value) {
+                        topValue.indexes = [ii];
+                        topValue.value = this.model.dataPoints[ii].value;
+                    } else if (this.model.dataPoints[ii].value == topValue.value) {
+                        topValue.indexes.push(ii);
                     }
-                    if (!bottomValue || this.model.dataPoints[ii].value < bottomValue.value) {
-                        bottomValue = { index: ii, value: this.model.dataPoints[ii].value, category: this.model.dataPoints[ii].category };
+
+                    if (this.model.dataPoints[ii].value < bottomValue.value) {
+                        bottomValue.indexes = [ii];
+                        bottomValue.value = this.model.dataPoints[ii].value;
+                    } else if (this.model.dataPoints[ii].value == bottomValue.value) {
+                        bottomValue.indexes.push(ii);
                     }
                 }
+
+                let yStart = (typeof this.model.settings.trendLine.start !== 'undefined' ? Math.min(bottomValue.value, this.model.settings.trendLine.start) : bottomValue.value);
+                
+                let yEnd = (typeof this.model.settings.trendLine.end !== 'undefined' ? Math.max(topValue.value, this.model.settings.trendLine.end) : topValue.value);
+
                 let ray = this.model.settings.trendLine.weight * 2;
 
                 let trendlineHeight = containerSize.height - incrementalPos.y - 10 - padding.bottom - ray;
@@ -809,7 +906,7 @@ module powerbi.extensibility.visual {
                         .range([ray, containerSize.width - padding.left - padding.right - ray]);
                     
                     let y = d3.scale.linear()
-                        .domain([bottomValue.value, topValue.value]) 
+                        .domain([yStart, yEnd]) 
                         .range([containerSize.height - padding.bottom - ray, incrementalPos.y + 10]);
 
                     let line = d3.svg.line()
@@ -848,23 +945,28 @@ module powerbi.extensibility.visual {
                     } else {
                         if (this.model.settings.trendLine.hiShow) {
                             let color = this.model.settings.trendLine.hiFill.solid.color;
-                            trendlineContainer.append('circle')
-                                .classed('point fixed', true)
-                                .attr('cx', x(topValue.index))
-                                .attr('cy', y(topValue.value))
-                                .attr('r', ray)
-                                .attr('fill', color);  
+
+                            for (let xx = 0; xx < topValue.indexes.length; xx++) {
+                                trendlineContainer.append('circle')
+                                    .classed('point fixed', true)
+                                    .attr('cx', x(topValue.indexes[xx]))
+                                    .attr('cy', y(topValue.value))
+                                    .attr('r', ray)
+                                    .attr('fill', color);  
+                            }
                         }
 
 
                         if (this.model.settings.trendLine.loShow) {
                             let color = this.model.settings.trendLine.loFill.solid.color;
-                            trendlineContainer.append('circle')
-                                .classed('point fixed', true)
-                                .attr('cx', x(bottomValue.index))
-                                .attr('cy', y(bottomValue.value))
-                                .attr('r', ray)
-                                .attr('fill', color);  
+                            for (let xx = 0; xx < bottomValue.indexes.length; xx++) {
+                                trendlineContainer.append('circle')
+                                    .classed('point fixed', true)
+                                    .attr('cx', x(bottomValue.indexes[xx]))
+                                    .attr('cy', y(bottomValue.value))
+                                    .attr('r', ray)
+                                    .attr('fill', color);  
+                            }
                         }
                     }
 
@@ -935,7 +1037,8 @@ module powerbi.extensibility.visual {
                                         header: self.model.dataPoints[foundIndex].category,
                                         displayName: dataPoint.displayName,
                                         value: formatter.format(val),
-                                        color: (color.substr(1, 3) == '333' ? '#000' : color)
+                                        color: (color.substr(1, 3) == '333' ? '#000' : color),
+                                        markerShape: 'circle'
                                     }]; 
                                 }, null, true
                             );
@@ -1021,8 +1124,10 @@ module powerbi.extensibility.visual {
                         properties: {
                             "unit": this.model.settings.dataLabel.unit,
                             "precision": this.model.settings.dataLabel.precision,
-                            "fontFamily": this.model.settings.dataLabel.fontFamily,
-                            "fontSize": this.model.settings.dataLabel.fontSize
+                            "locale": this.model.settings.dataLabel.locale,
+                            "fontSize": this.model.settings.dataLabel.fontSize,
+                            "fontFamily": this.model.settings.dataLabel.fontFamily
+                            
                         },
                         selector: null
                     });
@@ -1041,6 +1146,9 @@ module powerbi.extensibility.visual {
                         objectEnumeration.push({
                             objectName: objectName,
                             properties: {
+                                "varianceType": this.model.settings.dataLabel.varianceType,
+                                "variancePosition": this.model.settings.dataLabel.variancePosition,
+                                "varianceFontSize": this.model.settings.dataLabel.varianceFontSize,
                                 "variancePrecision": this.model.settings.dataLabel.variancePrecision
                             },
                             selector: null
@@ -1057,6 +1165,7 @@ module powerbi.extensibility.visual {
                             "show": this.model.settings.categoryLabel.show,
                             "fill": this.model.settings.categoryLabel.fill,
                             "fontSize": this.model.settings.categoryLabel.fontSize,
+                            "fontFamily": this.model.settings.categoryLabel.fontFamily,
                             "wordWrap": this.model.settings.categoryLabel.wordWrap,
                             "type": this.model.settings.categoryLabel.type
                         },
@@ -1092,7 +1201,8 @@ module powerbi.extensibility.visual {
                          objectEnumeration.push({
                             objectName: objectName,
                             properties: {
-                                "fontSize": this.model.settings.states.fontSize
+                                "fontSize": this.model.settings.states.fontSize,
+                                "fontFamily": this.model.settings.states.fontFamily
                             },
                             selector: null
                         });
@@ -1187,6 +1297,8 @@ module powerbi.extensibility.visual {
                         objectEnumeration.push({
                             objectName: objectName,
                             properties: {
+                                "start": this.model.settings.trendLine.start,
+                                "end": this.model.settings.trendLine.end,
                                 "interpolation": this.model.settings.trendLine.interpolation,
                                 "weight": this.model.settings.trendLine.weight,
                                 "fill": this.model.settings.trendLine.fill,
