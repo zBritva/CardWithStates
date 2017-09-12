@@ -571,10 +571,12 @@ module powerbi.extensibility.visual {
 
             let target = (this.model.dataPoints.length > 1 && this.model.settings.dataLabel.aggregate !== 'last' ? this.model.target : dataPoint.target);
 
+            let valueArray: number[] = this.model.dataPoints.map( v => v.value);
+            let minValue = d3.min(valueArray) || 0;
             let formatter = OKVizUtility.Formatter.getFormatter({
                 format: dataPoint.format,
-                value: this.model.settings.dataLabel.unit,
-                formatSingleValues: (this.model.settings.dataLabel.unit == 0),
+                value: this.model.settings.dataLabel.unit == 0 ? minValue: this.model.settings.dataLabel.unit,
+                formatSingleValues: (this.model.settings.dataLabel.unit === 0),
                 allowFormatBeautification: true,
                 precision: this.model.settings.dataLabel.precision,
                 displayUnitSystemType: 2, //Default = 0, Verbose = 1, WholeUnits = 2, DataLabels = 3
